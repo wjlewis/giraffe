@@ -34,7 +34,7 @@ const Vertex: React.FC<VertexProps> = props => {
       className="vertex"
       cx={pos.x}
       cy={pos.y}
-      r="20"
+      r="15"
       stroke="#444"
       strokeWidth={isHovered ? 3 : 1}
       fill={isSelected ? 'red' : '#fff'}
