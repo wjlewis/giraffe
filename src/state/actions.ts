@@ -11,6 +11,8 @@ export enum ActionType {
   MouseUp = 'MouseUp',
   MouseEnterVertex = 'MouseEnterVertex',
   MouseLeaveVertex = 'MouseLeaveVertex',
+  MouseEnterEdgeControlPt = 'MouseEnterEdgeControlPt',
+  MouseLeaveEdgeControlPt = 'MouseLeaveEdgeControlPt',
 }
 
 export function mouseDown(): Action {
@@ -31,4 +33,12 @@ export function mouseEnterVertex(vertexId: number): Action {
 
 export function mouseLeaveVertex(vertexId: number): Action {
   return { type: ActionType.MouseLeaveVertex, payload: vertexId };
+}
+
+export function mouseEnterEdgeControlPt(edgeId: number): Action {
+  return { type: ActionType.MouseEnterEdgeControlPt, payload: edgeId };
+}
+
+export function mouseLeaveEdgeControlPt(edgeId: number): Action {
+  return { type: ActionType.MouseLeaveEdgeControlPt, payload: edgeId };
 }

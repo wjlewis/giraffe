@@ -24,6 +24,7 @@ const BoxSelection: React.FC<{}> = () => {
     },
     none: () => null,
     vertices: () => null,
+    edgeControlPt: () => null,
   });
 };
 

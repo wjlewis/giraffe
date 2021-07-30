@@ -5,21 +5,22 @@ export class DragSubject {
   private boxSelectionRootPos?: Vec;
   private vertexOffsets?: VertexOffsets;
   private edgeOffsets?: EdgeOffsets;
+  private edgeId?: number;
 
-  static none(): DragSubject {
+  static None(): DragSubject {
     const out = new DragSubject();
     out.type = DragSubjectType.None;
     return out;
   }
 
-  static boxSelection(rootPos: Vec): DragSubject {
+  static BoxSelection(rootPos: Vec): DragSubject {
     const out = new DragSubject();
     out.type = DragSubjectType.BoxSelection;
     out.boxSelectionRootPos = rootPos;
     return out;
   }
 
-  static vertices(
+  static Vertices(
     vertexOffsets: VertexOffsets,
     edgeOffsets: EdgeOffsets
   ): DragSubject {
@@ -27,6 +28,13 @@ export class DragSubject {
     out.type = DragSubjectType.Vertices;
     out.vertexOffsets = vertexOffsets;
     out.edgeOffsets = edgeOffsets;
+    return out;
+  }
+
+  static EdgeControlPt(edgeId: number): DragSubject {
+    const out = new DragSubject();
+    out.type = DragSubjectType.EdgeControlPt;
+    out.edgeId = edgeId;
     return out;
   }
 
@@ -45,6 +53,8 @@ export class DragSubject {
           this.vertexOffsets as VertexOffsets,
           this.edgeOffsets as EdgeOffsets
         );
+      case DragSubjectType.EdgeControlPt:
+        return match.edgeControlPt(this.edgeId as number);
     }
   }
 }
@@ -53,6 +63,7 @@ enum DragSubjectType {
   None = 'None',
   BoxSelection = 'BoxSelection',
   Vertices = 'Vertices',
+  EdgeControlPt = 'EdgeControlPt',
 }
 
 export interface VertexOffsets {
@@ -66,7 +77,7 @@ export interface EdgeOffsets {
   [id: number]: {
     id: number;
     pqRatio: number;
-    perp: Vec;
+    perpLen: number;
   };
 }
 
@@ -74,4 +85,5 @@ interface DragSubjectMatch<A> {
   none: () => A;
   boxSelection: (rootPos: Vec) => A;
   vertices: (vertexOffsets: VertexOffsets, edgeOffsets: EdgeOffsets) => A;
+  edgeControlPt: (edgeId: number) => A;
 }

@@ -2,14 +2,14 @@ export class Option<T> {
   private type: OptionType;
   private value?: T;
 
-  static some<T>(value: T): Option<T> {
+  static Some<T>(value: T): Option<T> {
     const out: Option<T> = new Option();
     out.type = OptionType.Some;
     out.value = value;
     return out;
   }
 
-  static none<T>(): Option<T> {
+  static None<T>(): Option<T> {
     const out: Option<T> = new Option();
     out.type = OptionType.None;
     return out;
@@ -18,7 +18,7 @@ export class Option<T> {
   map<U>(fn: (value: T) => U): Option<U> {
     switch (this.type) {
       case OptionType.Some:
-        return Option.some(fn(this.value as T));
+        return Option.Some(fn(this.value as T));
       case OptionType.None:
         return this as any as Option<U>;
     }

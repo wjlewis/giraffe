@@ -56,9 +56,9 @@ export interface State {
 export const initState: State = {
   ui: {
     mousePos: new Vec(0, 0),
-    hoverTarget: HoverTarget.canvas(),
-    selection: Selection.none(),
-    dragSubject: DragSubject.none(),
+    hoverTarget: HoverTarget.Canvas(),
+    selection: Selection.None(),
+    dragSubject: DragSubject.None(),
   },
   graph: {
     vertices: {
@@ -99,7 +99,7 @@ export const initState: State = {
           pos: new Vec(900, 300),
         },
       },
-      wip: Option.none(),
+      wip: Option.None(),
     },
     edges: {
       byId: {
@@ -110,7 +110,7 @@ export const initState: State = {
           controlPtPos: new Vec(600, 300),
         },
       },
-      wip: Option.none(),
+      wip: Option.None(),
     },
   },
 };
@@ -130,6 +130,10 @@ export function reducer(state: State, action: Action): State {
       return reduceMouseEnterVertex(state, action);
     case ActionType.MouseLeaveVertex:
       return reduceMouseLeaveVertex(state, action);
+    case ActionType.MouseEnterEdgeControlPt:
+      return reduceMouseEnterEdgeControlPt(state, action);
+    case ActionType.MouseLeaveEdgeControlPt:
+      return reduceMouseLeaveEdgeControlPt(state, action);
     default:
       return state;
   }
@@ -142,7 +146,7 @@ function reduceMouseDown(state: State, action: Action): State {
       return set(
         state,
         ['ui', 'dragSubject'],
-        DragSubject.boxSelection(mousePos)
+        DragSubject.BoxSelection(mousePos)
       );
     },
     vertex: vertexId =>
@@ -154,12 +158,12 @@ function reduceMouseDown(state: State, action: Action): State {
           const withDragTarget = set(
             withWip,
             ['ui', 'dragSubject'],
-            DragSubject.vertices(vertexOffsets, edgeOffsets)
+            DragSubject.Vertices(vertexOffsets, edgeOffsets)
           );
           return set(
             withDragTarget,
             ['ui', 'selection'],
-            Selection.vertices([vertexId])
+            Selection.Vertices([vertexId])
           );
         },
         vertices: vertexIds => {
@@ -170,7 +174,7 @@ function reduceMouseDown(state: State, action: Action): State {
             return set(
               withWip,
               ['ui', 'dragSubject'],
-              DragSubject.vertices(vertexOffsets, edgeOffsets)
+              DragSubject.Vertices(vertexOffsets, edgeOffsets)
             );
           } else {
             const withWip = copyCurrentToWip(state);
@@ -179,16 +183,24 @@ function reduceMouseDown(state: State, action: Action): State {
             const withDragTarget = set(
               withWip,
               ['ui', 'dragSubject'],
-              DragSubject.vertices(vertexOffsets, edgeOffsets)
+              DragSubject.Vertices(vertexOffsets, edgeOffsets)
             );
             return set(
               withDragTarget,
               ['ui', 'selection'],
-              Selection.vertices([vertexId])
+              Selection.Vertices([vertexId])
             );
           }
         },
       }),
+    edgeControlPt: edgeId => {
+      const withWip = copyCurrentToEdgeWip(state);
+      return set(
+        withWip,
+        ['ui', 'dragSubject'],
+        DragSubject.EdgeControlPt(edgeId)
+      );
+    },
   });
 }
 
@@ -196,12 +208,20 @@ function copyCurrentToWip(state: State): State {
   const withVertices = set(
     state,
     ['graph', 'vertices', 'wip'],
-    Option.some(state.graph.vertices.byId)
+    Option.Some(state.graph.vertices.byId)
   );
   return set(
     withVertices,
     ['graph', 'edges', 'wip'],
-    Option.some(state.graph.edges.byId)
+    Option.Some(state.graph.edges.byId)
+  );
+}
+
+function copyCurrentToEdgeWip(state: State): State {
+  return set(
+    state,
+    ['graph', 'edges', 'wip'],
+    Option.Some(state.graph.edges.byId)
   );
 }
 
@@ -209,7 +229,7 @@ function reduceMouseUp(state: State, action: Action): State {
   const withNoDragSubject = set(
     state,
     ['ui', 'dragSubject'],
-    DragSubject.none()
+    DragSubject.None()
   );
   return selectDragSubject(state).match({
     none: () => withNoDragSubject,
@@ -224,11 +244,12 @@ function reduceMouseUp(state: State, action: Action): State {
         withNoDragSubject,
         ['ui', 'selection'],
         hoveredVertices.length > 0
-          ? Selection.vertices(hoveredVertices)
-          : Selection.none()
+          ? Selection.Vertices(hoveredVertices)
+          : Selection.None()
       );
     },
     vertices: () => commitWip(withNoDragSubject),
+    edgeControlPt: () => commitEdgeWip(withNoDragSubject),
   });
 }
 
@@ -240,24 +261,41 @@ function commitWip(state: State): State {
       vertices: {
         ...state.graph.vertices,
         byId: state.graph.vertices.wip.unwrap(),
-        wip: Option.none(),
+        wip: Option.None(),
       },
       edges: {
         ...state.graph.edges,
         byId: state.graph.edges.wip.unwrap(),
-        wip: Option.none(),
+        wip: Option.None(),
+      },
+    },
+  };
+}
+
+function commitEdgeWip(state: State): State {
+  return {
+    ...state,
+    graph: {
+      ...state.graph,
+      edges: {
+        ...state.graph.edges,
+        byId: state.graph.edges.wip.unwrap(),
+        wip: Option.None(),
       },
     },
   };
 }
 
 function reduceMouseMove(state: State, action: Action): State {
+  // CONSIDER Do we need to store the mouse position in the state?
+  // Can't we just pass it to the functions that need it here?
   const withMousePos = set(state, ['ui', 'mousePos'], action.payload);
   const dragSubject = selectDragSubject(withMousePos);
 
   return dragSubject.match({
     vertices: (vertexOffsets, edgeOffsets) =>
       updateWips(withMousePos, vertexOffsets, edgeOffsets),
+    edgeControlPt: edgeId => updateEdgeWip(withMousePos, edgeId),
     boxSelection: () => withMousePos,
     none: () => withMousePos,
   });
@@ -300,7 +338,8 @@ function updateWips(
         const q = selectVertexPos(withVertices, edge.endVertexId);
         const pq = q.minus(p);
         const proj = pq.scale(offsetInfo.pqRatio);
-        const controlPtPos = p.plus(proj).plus(offsetInfo.perp);
+        const perp = proj.perp().normalize().scale(offsetInfo.perpLen);
+        const controlPtPos = p.plus(proj).plus(perp);
 
         return {
           ...edge,
@@ -312,18 +351,56 @@ function updateWips(
   );
 }
 
+function updateEdgeWip(state: State, edgeId: number): State {
+  return {
+    ...state,
+    graph: {
+      ...state.graph,
+      edges: {
+        ...state.graph.edges,
+        wip: state.graph.edges.wip.map(edges => ({
+          ...edges,
+          [edgeId]: {
+            ...state.graph.edges.byId[edgeId],
+            controlPtPos: state.ui.mousePos,
+          },
+        })),
+      },
+    },
+  };
+}
+
 function reduceMouseEnterVertex(state: State, action: Action): State {
   return selectDragSubject(state).match({
     none: () =>
-      set(state, ['ui', 'hoverTarget'], HoverTarget.vertex(action.payload)),
+      set(state, ['ui', 'hoverTarget'], HoverTarget.Vertex(action.payload)),
     vertices: () =>
-      set(state, ['ui', 'hoverTarget'], HoverTarget.vertex(action.payload)),
+      set(state, ['ui', 'hoverTarget'], HoverTarget.Vertex(action.payload)),
+    edgeControlPt: () => state,
     boxSelection: () => state,
   });
 }
 
 function reduceMouseLeaveVertex(state: State, action: Action): State {
-  return set(state, ['ui', 'hoverTarget'], HoverTarget.canvas());
+  return set(state, ['ui', 'hoverTarget'], HoverTarget.Canvas());
+}
+
+function reduceMouseEnterEdgeControlPt(state: State, action: Action): State {
+  return selectDragSubject(state).match({
+    none: () =>
+      set(
+        state,
+        ['ui', 'hoverTarget'],
+        HoverTarget.EdgeControlPt(action.payload)
+      ),
+    vertices: () => state,
+    edgeControlPt: () => state,
+    boxSelection: () => state,
+  });
+}
+
+function reduceMouseLeaveEdgeControlPt(state: State, action: Action): State {
+  return set(state, ['ui', 'hoverTarget'], HoverTarget.Canvas());
 }
 
 /*
@@ -364,8 +441,10 @@ export function isVertexHovered(state: State, vertexId: number): boolean {
         },
         none: () => false,
         vertices: () => false,
+        edgeControlPt: () => false,
       }),
-    vertex: v => dragSubject.isNone() && v === vertexId,
+    vertex: vertexId1 => dragSubject.isNone() && vertexId1 === vertexId,
+    edgeControlPt: () => false,
   });
 }
 
@@ -425,12 +504,13 @@ function computeEdgeOffsets(state: State, vertexIds: number[]): EdgeOffsets {
     const pc = edge.controlPtPos.minus(p);
     const proj = pc.proj(pq);
     const perp = pc.minus(proj);
+    const perpSign = proj.crossSign(perp);
     const pqRatio = proj.length() / pq.length();
 
     return {
       id: edge.id,
       pqRatio,
-      perp,
+      perpLen: perpSign * perp.length(),
     };
   });
 

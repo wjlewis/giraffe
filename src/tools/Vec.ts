@@ -30,4 +30,25 @@ export class Vec {
   dot(rhs: Vec): number {
     return this.x * rhs.x + this.y * rhs.y;
   }
+
+  // Right-handed
+  perp(): Vec {
+    const x = new Vec(1, 0).dot(this);
+    const y = new Vec(0, 1).dot(this);
+    return new Vec(-y, x);
+  }
+
+  crossSign(rhs: Vec): number {
+    const crossLength = this.x * rhs.y - this.y * rhs.x;
+    return Math.sign(crossLength);
+  }
+
+  normalize(): Vec {
+    const len = this.length();
+    if (len === 0) {
+      throw new Error('attempt to normalize zero vector');
+    }
+
+    return this.scale(1 / len);
+  }
 }

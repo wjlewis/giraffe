@@ -2,13 +2,13 @@ export class Selection {
   private type: SelectionType;
   private vertexIds?: number[];
 
-  static none(): Selection {
+  static None(): Selection {
     const out = new Selection();
     out.type = SelectionType.None;
     return out;
   }
 
-  static vertices(vertexIds: number[]): Selection {
+  static Vertices(vertexIds: number[]): Selection {
     const out = new Selection();
     out.type = SelectionType.Vertices;
     out.vertexIds = vertexIds;
