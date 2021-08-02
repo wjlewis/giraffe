@@ -23,6 +23,16 @@ export class HoverTarget {
     return out;
   }
 
+  static NewVertex(): HoverTarget {
+    const out = new HoverTarget();
+    out.type = HoverTargetType.NewVertex;
+    return out;
+  }
+
+  isNewVertex(): boolean {
+    return this.type === HoverTargetType.NewVertex;
+  }
+
   match<A>(match: HoverTargetMatch<A>): A {
     switch (this.type) {
       case HoverTargetType.Canvas:
@@ -31,6 +41,8 @@ export class HoverTarget {
         return match.vertex(this.vertexId as number);
       case HoverTargetType.EdgeControlPt:
         return match.edgeControlPt(this.edgeId as number);
+      case HoverTargetType.NewVertex:
+        return match.newVertex();
     }
   }
 }
@@ -39,10 +51,12 @@ enum HoverTargetType {
   Canvas = 'Canvas',
   Vertex = 'Vertex',
   EdgeControlPt = 'EdgeControlPt',
+  NewVertex = 'NewVertex',
 }
 
 export interface HoverTargetMatch<A> {
   canvas: () => A;
   vertex: (vertexId: number) => A;
   edgeControlPt: (edgeId: number) => A;
+  newVertex: () => A;
 }

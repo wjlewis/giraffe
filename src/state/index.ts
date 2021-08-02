@@ -8,15 +8,11 @@ import {
   VertexOffsets,
   EdgeOffsets,
 } from './misc';
+import * as sel from './selectors';
 
 export * from './actions';
 export * from './middleware';
-
-// The available commands depend on the situation we find ourselves in:
-// There should always be an option to add a vertex.
-// If one or more vertices are selected, we need an option to remove the vertices
-// If exactly two vertices are selected, we need an option to add/remove the edge between them
-// Additionally, undo/redo
+export * from './selectors';
 
 export const StateContext = React.createContext({
   state: null as any as State,
@@ -115,6 +111,12 @@ export const initState: State = {
           endVertexId: 1,
           controlPtPos: new Vec(600, 300),
         },
+        2: {
+          id: 2,
+          startVertexId: 1,
+          endVertexId: 2,
+          controlPtPos: new Vec(500, 500),
+        },
       },
       wip: Option.None(),
     },
@@ -140,6 +142,12 @@ export function reducer(state: State, action: Action): State {
       return reduceMouseEnterEdgeControlPt(state, action);
     case ActionType.MouseLeaveEdgeControlPt:
       return reduceMouseLeaveEdgeControlPt(state, action);
+    case ActionType.AddVertex:
+      return reduceAddVertex(state, action);
+    case ActionType.RemoveVertices:
+      return reduceRemoveVertices(state, action);
+    case ActionType.AddEdge:
+      return reduceAddEdge(state, action);
     case ActionType.ShiftKeyDown:
       return reduceShiftKeyDown(state, action);
     case ActionType.KeyUp:
@@ -152,7 +160,7 @@ export function reducer(state: State, action: Action): State {
 function reduceMouseDown(state: State, action: Action): State {
   return state.ui.hoverTarget.match({
     canvas: () => {
-      const { mousePos } = state.ui;
+      const mousePos = sel.selectMousePos(state);
       return set(
         state,
         ['ui', 'dragSubject'],
@@ -160,7 +168,7 @@ function reduceMouseDown(state: State, action: Action): State {
       );
     },
     vertex: vertexId => {
-      const selection = selectSelection(state);
+      const selection = sel.selectSelection(state);
       return selection.match({
         none: () => {
           const withWip = copyCurrentToWip(state);
@@ -213,7 +221,64 @@ function reduceMouseDown(state: State, action: Action): State {
         DragSubject.EdgeControlPt(edgeId)
       );
     },
+    newVertex: () => {
+      const id = sel.selectNextVertexId(state);
+      const mousePos = sel.selectMousePos(state);
+      const withVertexHovered = set(
+        state,
+        ['ui', 'hoverTarget'],
+        HoverTarget.Vertex(id)
+      );
+      return set(withVertexHovered, ['graph', 'vertices', 'byId', id], {
+        id,
+        name: '',
+        pos: mousePos,
+      });
+    },
   });
+}
+
+function computeVertexOffsets(
+  state: State,
+  vertexIds: number[]
+): VertexOffsets {
+  const mousePos = sel.selectMousePos(state);
+  const vertices = vertexIds.map(id => state.graph.vertices.byId[id]);
+  const withOffsets = vertices.map(({ id, pos }) => ({
+    id,
+    mouseOffset: pos.minus(mousePos),
+  }));
+  return withOffsets.reduce((acc, x) => ({ ...acc, [x.id]: x }), {});
+}
+
+function computeEdgeOffsets(state: State, vertexIds: number[]): EdgeOffsets {
+  const edges = sel
+    .selectEdges(state)
+    .filter(
+      edge =>
+        vertexIds.includes(edge.startVertexId) ||
+        vertexIds.includes(edge.endVertexId)
+    );
+
+  const offsets = edges.map(edge => {
+    const p = sel.selectVertexPos(state, edge.startVertexId);
+    const q = sel.selectVertexPos(state, edge.endVertexId);
+    const pq = q.minus(p);
+    const pc = edge.controlPtPos.minus(p);
+    const proj = pc.proj(pq);
+    const perp = pc.minus(proj);
+    const perpSign = proj.crossSign(perp);
+    const pqRatioSign = Math.sign(proj.dot(pq));
+    const pqRatio = (pqRatioSign * proj.length()) / pq.length();
+
+    return {
+      id: edge.id,
+      pqRatio,
+      perpLen: perpSign * perp.length(),
+    };
+  });
+
+  return offsets.reduce((acc, x) => ({ ...acc, [x.id]: x }), {});
 }
 
 function copyCurrentToWip(state: State): State {
@@ -243,11 +308,11 @@ function reduceMouseUp(state: State, action: Action): State {
     ['ui', 'dragSubject'],
     DragSubject.None()
   );
-  return selectDragSubject(state).match({
+  return sel.selectDragSubject(state).match({
     none: () => withNoDragSubject,
     boxSelection: rootPos => {
-      const mousePos = selectMousePos(withNoDragSubject);
-      const hoveredVertices = selectVerticesInRect(
+      const mousePos = sel.selectMousePos(withNoDragSubject);
+      const hoveredVertices = sel.selectVerticesInRect(
         state,
         new Rect(rootPos, mousePos),
         20
@@ -300,7 +365,7 @@ function commitEdgeWip(state: State): State {
 
 function reduceMouseMove(state: State, action: Action): State {
   const withMousePos = set(state, ['ui', 'mousePos'], action.payload);
-  const dragSubject = selectDragSubject(withMousePos);
+  const dragSubject = sel.selectDragSubject(withMousePos);
 
   return dragSubject.match({
     vertices: (vertexOffsets, edgeOffsets) =>
@@ -316,7 +381,7 @@ function updateWips(
   offsets: VertexOffsets,
   edgeOffsets: EdgeOffsets
 ): State {
-  const mousePos = selectMousePos(state);
+  const mousePos = sel.selectMousePos(state);
   const withVertices = set(
     state,
     ['graph', 'vertices', 'wip'],
@@ -344,8 +409,8 @@ function updateWips(
         if (!offsetInfo) {
           return edge;
         }
-        const p = selectVertexPos(withVertices, edge.startVertexId);
-        const q = selectVertexPos(withVertices, edge.endVertexId);
+        const p = sel.selectVertexPos(withVertices, edge.startVertexId);
+        const q = sel.selectVertexPos(withVertices, edge.endVertexId);
         const pq = q.minus(p);
         const proj = pq.scale(offsetInfo.pqRatio);
         const perp = proj.perp().normalize().scale(offsetInfo.perpLen);
@@ -381,22 +446,29 @@ function updateEdgeWip(state: State, edgeId: number): State {
 }
 
 function reduceMouseEnterVertex(state: State, action: Action): State {
-  return selectDragSubject(state).match({
+  return sel.selectDragSubject(state).match({
     none: () =>
-      set(state, ['ui', 'hoverTarget'], HoverTarget.Vertex(action.payload)),
+      sel.selectHoverTarget(state).isNewVertex()
+        ? state
+        : set(state, ['ui', 'hoverTarget'], HoverTarget.Vertex(action.payload)),
     vertices: () =>
-      set(state, ['ui', 'hoverTarget'], HoverTarget.Vertex(action.payload)),
+      sel.selectHoverTarget(state).isNewVertex()
+        ? state
+        : set(state, ['ui', 'hoverTarget'], HoverTarget.Vertex(action.payload)),
     edgeControlPt: () => state,
     boxSelection: () => state,
   });
 }
 
 function reduceMouseLeaveVertex(state: State, action: Action): State {
-  return set(state, ['ui', 'hoverTarget'], HoverTarget.Canvas());
+  const hoverTarget = sel.selectHoverTarget(state);
+  return hoverTarget.isNewVertex()
+    ? state
+    : set(state, ['ui', 'hoverTarget'], HoverTarget.Canvas());
 }
 
 function reduceMouseEnterEdgeControlPt(state: State, action: Action): State {
-  return selectDragSubject(state).match({
+  return sel.selectDragSubject(state).match({
     none: () =>
       set(
         state,
@@ -413,6 +485,62 @@ function reduceMouseLeaveEdgeControlPt(state: State, action: Action): State {
   return set(state, ['ui', 'hoverTarget'], HoverTarget.Canvas());
 }
 
+function reduceAddVertex(state: State, action: Action): State {
+  return set(state, ['ui', 'hoverTarget'], HoverTarget.NewVertex());
+}
+
+function reduceRemoveVertices(state: State, action: Action): State {
+  const vertices = sel.selectVertices(state);
+  const selectedVertexIds = action.payload;
+  const updatedVertices = vertices.filter(
+    v => !selectedVertexIds.includes(v.id)
+  );
+  const verticesById = updatedVertices.reduce(
+    (acc, x) => ({ ...acc, [x.id]: x }),
+    {}
+  );
+  const withoutVertices = set(
+    state,
+    ['graph', 'vertices', 'byId'],
+    verticesById
+  );
+
+  const edges = sel.selectEdges(state);
+  const updatedEdges = edges.filter(
+    e =>
+      !selectedVertexIds.includes(e.startVertexId) &&
+      !selectedVertexIds.includes(e.endVertexId)
+  );
+  const edgesById = updatedEdges.reduce(
+    (acc, x) => ({ ...acc, [x.id]: x }),
+    {}
+  );
+  return set(withoutVertices, ['graph', 'edges', 'byId'], edgesById);
+}
+
+function reduceAddEdge(state: State, action: Action): State {
+  const { startVertexId, endVertexId } = action.payload;
+  const id = sel.selectNextEdgeId(state);
+  const startVertexPos = sel.selectVertexPos(state, startVertexId);
+  const endVertexPos = sel.selectVertexPos(state, endVertexId);
+  const controlPtPos = endVertexPos
+    .minus(startVertexPos)
+    .scale(1 / 2)
+    .plus(startVertexPos);
+  const edge = {
+    id,
+    startVertexId,
+    endVertexId,
+    controlPtPos,
+  };
+  const byId = {
+    ...state.graph.edges.byId,
+    [id]: edge,
+  };
+  const withEdge = set(state, ['graph', 'edges', 'byId'], byId);
+  return set(withEdge, ['ui', 'selection'], Selection.None());
+}
+
 function reduceShiftKeyDown(state: State, action: Action): State {
   // Multiselect
   return state;
@@ -421,118 +549,4 @@ function reduceShiftKeyDown(state: State, action: Action): State {
 function reduceKeyUp(state: State, action: Action): State {
   // No multiselect, along with whatever else needs to be done here
   return state;
-}
-
-/*
- * Selectors
- */
-export function selectVertices(state: State): Vertex[] {
-  return state.graph.vertices.wip.match({
-    some: vertices => Object.values(vertices),
-    none: () => Object.values(state.graph.vertices.byId),
-  });
-}
-
-export function selectEdges(state: State): Edge[] {
-  return state.graph.edges.wip.match({
-    some: edges => Object.values(edges),
-    none: () => Object.values(state.graph.edges.byId),
-  });
-}
-
-export function isVertexSelected(state: State, vertexId: number): boolean {
-  return state.ui.selection.match({
-    none: () => false,
-    vertices: vertexIds => vertexIds.includes(vertexId),
-  });
-}
-
-export function isVertexHovered(state: State, vertexId: number): boolean {
-  const dragSubject = selectDragSubject(state);
-
-  return state.ui.hoverTarget.match({
-    canvas: () =>
-      dragSubject.match({
-        boxSelection: rootPos => {
-          const mousePos = selectMousePos(state);
-          const rect = new Rect(rootPos, mousePos);
-          const vertexPos = selectVertexPos(state, vertexId);
-          return rect.contains(vertexPos, 20);
-        },
-        none: () => false,
-        vertices: () => false,
-        edgeControlPt: () => false,
-      }),
-    vertex: vertexId1 => dragSubject.isNone() && vertexId1 === vertexId,
-    edgeControlPt: () => false,
-  });
-}
-
-export function selectVertexPos(state: State, vertexId: number): Vec {
-  return state.graph.vertices.wip.match({
-    none: () => state.graph.vertices.byId[vertexId].pos,
-    some: vertices => vertices[vertexId].pos,
-  });
-}
-
-export function selectMousePos(state: State): Vec {
-  return state.ui.mousePos;
-}
-
-export function selectDragSubject(state: State): DragSubject {
-  return state.ui.dragSubject;
-}
-
-export function selectSelection(state: State): Selection {
-  return state.ui.selection;
-}
-
-export function selectVerticesInRect(
-  state: State,
-  rect: Rect,
-  padding: number
-): number[] {
-  return Object.values(state.graph.vertices.byId)
-    .filter(({ pos }) => rect.contains(pos, padding))
-    .map(({ id }) => id);
-}
-
-function computeVertexOffsets(
-  state: State,
-  vertexIds: number[]
-): VertexOffsets {
-  const mousePos = selectMousePos(state);
-  const vertices = vertexIds.map(id => state.graph.vertices.byId[id]);
-  const withOffsets = vertices.map(({ id, pos }) => ({
-    id,
-    mouseOffset: pos.minus(mousePos),
-  }));
-  return withOffsets.reduce((acc, x) => ({ ...acc, [x.id]: x }), {});
-}
-
-function computeEdgeOffsets(state: State, vertexIds: number[]): EdgeOffsets {
-  const edges = selectEdges(state).filter(
-    edge =>
-      vertexIds.includes(edge.startVertexId) ||
-      vertexIds.includes(edge.endVertexId)
-  );
-
-  const offsets = edges.map(edge => {
-    const p = selectVertexPos(state, edge.startVertexId);
-    const q = selectVertexPos(state, edge.endVertexId);
-    const pq = q.minus(p);
-    const pc = edge.controlPtPos.minus(p);
-    const proj = pc.proj(pq);
-    const perp = pc.minus(proj);
-    const perpSign = proj.crossSign(perp);
-    const pqRatio = proj.length() / pq.length();
-
-    return {
-      id: edge.id,
-      pqRatio,
-      perpLen: perpSign * perp.length(),
-    };
-  });
-
-  return offsets;
 }

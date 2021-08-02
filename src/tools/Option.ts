@@ -40,6 +40,14 @@ export class Option<T> {
 
     return this.value as T;
   }
+
+  static from<T>(value: T | undefined): Option<T> {
+    if (value) {
+      return Option.Some(value);
+    } else {
+      return Option.None();
+    }
+  }
 }
 
 enum OptionType {

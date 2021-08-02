@@ -6,7 +6,7 @@ export function noOp(..._args: any[]) {}
 
 export function set(
   obj: { [key: string]: any },
-  path: string[],
+  path: (string | number)[],
   value: any
 ): any {
   const out = { ...obj };

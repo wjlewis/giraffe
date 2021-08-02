@@ -17,6 +17,11 @@ export enum ActionType {
   KeyDown = 'KeyDown',
   KeyUp = 'KeyUp',
 
+  AddVertex = 'AddVertex',
+  RemoveVertices = 'RemoveVertices',
+  AddEdge = 'AddEdge',
+  RemoveEdge = 'RemoveEdge',
+
   // More specific keyboard actions
   ShiftKeyDown = 'ShiftKeyDown',
 }
@@ -59,4 +64,20 @@ export function keyUp(): Action {
 
 export function shiftKeyDown(): Action {
   return { type: ActionType.ShiftKeyDown };
+}
+
+export function addVertex(): Action {
+  return { type: ActionType.AddVertex };
+}
+
+export function removeVertices(vertexIds: number[]): Action {
+  return { type: ActionType.RemoveVertices, payload: vertexIds };
+}
+
+export function addEdge(startVertexId: number, endVertexId: number): Action {
+  return { type: ActionType.AddEdge, payload: { startVertexId, endVertexId } };
+}
+
+export function removeEdge(edgeId: number): Action {
+  return { type: ActionType.RemoveEdge, payload: edgeId };
 }

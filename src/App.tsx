@@ -18,6 +18,8 @@ import {
 import Vertex from './Vertex';
 import Edge from './Edge';
 import BoxSelection from './BoxSelection';
+import Actions from './Actions';
+import NewVertex from './NewVertex';
 
 const App: React.FC<{}> = () => {
   const [state, dispatch] = useReducer(
@@ -52,12 +54,14 @@ const App: React.FC<{}> = () => {
           ))}
 
           <BoxSelection />
+
+          <NewVertex />
         </svg>
       </main>
 
       <footer>
         <nav>
-          Logo <div className="links">links</div>
+          <Actions />
         </nav>
       </footer>
     </StateContext.Provider>
