@@ -1,9 +1,10 @@
 import React from 'react';
-import { useReducer, useMouse } from './hooks';
+import { useReducer, useMouse, useKeyboard } from './hooks';
 import {
   reducer,
   initState,
   logActions,
+  dispatchKeyEvents,
   StateContext,
   mouseDown,
   mouseMove,
@@ -11,6 +12,8 @@ import {
   ActionType,
   selectVertices,
   selectEdges,
+  keyDown,
+  keyUp,
 } from './state';
 import Vertex from './Vertex';
 import Edge from './Edge';
@@ -20,12 +23,17 @@ const App: React.FC<{}> = () => {
   const [state, dispatch] = useReducer(
     reducer,
     initState,
+    dispatchKeyEvents(),
     logActions(ActionType.MouseMove)
   );
   const hostRef = useMouse({
     onMouseDown: () => dispatch(mouseDown()),
     onMouseMove: pos => dispatch(mouseMove(pos)),
     onMouseUp: () => dispatch(mouseUp()),
+  });
+  useKeyboard({
+    onKeyDown: info => dispatch(keyDown(info)),
+    onKeyUp: () => dispatch(keyUp()),
   });
 
   const edges = selectEdges(state);

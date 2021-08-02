@@ -1,4 +1,5 @@
 import { Vec } from '../tools';
+import { KeyDownInfo } from '../hooks';
 
 export interface Action {
   type: string;
@@ -13,6 +14,11 @@ export enum ActionType {
   MouseLeaveVertex = 'MouseLeaveVertex',
   MouseEnterEdgeControlPt = 'MouseEnterEdgeControlPt',
   MouseLeaveEdgeControlPt = 'MouseLeaveEdgeControlPt',
+  KeyDown = 'KeyDown',
+  KeyUp = 'KeyUp',
+
+  // More specific keyboard actions
+  ShiftKeyDown = 'ShiftKeyDown',
 }
 
 export function mouseDown(): Action {
@@ -41,4 +47,16 @@ export function mouseEnterEdgeControlPt(edgeId: number): Action {
 
 export function mouseLeaveEdgeControlPt(edgeId: number): Action {
   return { type: ActionType.MouseLeaveEdgeControlPt, payload: edgeId };
+}
+
+export function keyDown(info: KeyDownInfo): Action {
+  return { type: ActionType.KeyDown, payload: info };
+}
+
+export function keyUp(): Action {
+  return { type: ActionType.KeyUp };
+}
+
+export function shiftKeyDown(): Action {
+  return { type: ActionType.ShiftKeyDown };
 }

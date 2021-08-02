@@ -12,6 +12,12 @@ import {
 export * from './actions';
 export * from './middleware';
 
+// The available commands depend on the situation we find ourselves in:
+// There should always be an option to add a vertex.
+// If one or more vertices are selected, we need an option to remove the vertices
+// If exactly two vertices are selected, we need an option to add/remove the edge between them
+// Additionally, undo/redo
+
 export const StateContext = React.createContext({
   state: null as any as State,
   dispatch: null as any as React.Dispatch<Action>,
@@ -134,6 +140,10 @@ export function reducer(state: State, action: Action): State {
       return reduceMouseEnterEdgeControlPt(state, action);
     case ActionType.MouseLeaveEdgeControlPt:
       return reduceMouseLeaveEdgeControlPt(state, action);
+    case ActionType.ShiftKeyDown:
+      return reduceShiftKeyDown(state, action);
+    case ActionType.KeyUp:
+      return reduceKeyUp(state, action);
     default:
       return state;
   }
@@ -149,8 +159,9 @@ function reduceMouseDown(state: State, action: Action): State {
         DragSubject.BoxSelection(mousePos)
       );
     },
-    vertex: vertexId =>
-      selectSelection(state).match({
+    vertex: vertexId => {
+      const selection = selectSelection(state);
+      return selection.match({
         none: () => {
           const withWip = copyCurrentToWip(state);
           const vertexOffsets = computeVertexOffsets(withWip, [vertexId]);
@@ -192,7 +203,8 @@ function reduceMouseDown(state: State, action: Action): State {
             );
           }
         },
-      }),
+      });
+    },
     edgeControlPt: edgeId => {
       const withWip = copyCurrentToEdgeWip(state);
       return set(
@@ -287,8 +299,6 @@ function commitEdgeWip(state: State): State {
 }
 
 function reduceMouseMove(state: State, action: Action): State {
-  // CONSIDER Do we need to store the mouse position in the state?
-  // Can't we just pass it to the functions that need it here?
   const withMousePos = set(state, ['ui', 'mousePos'], action.payload);
   const dragSubject = selectDragSubject(withMousePos);
 
@@ -401,6 +411,16 @@ function reduceMouseEnterEdgeControlPt(state: State, action: Action): State {
 
 function reduceMouseLeaveEdgeControlPt(state: State, action: Action): State {
   return set(state, ['ui', 'hoverTarget'], HoverTarget.Canvas());
+}
+
+function reduceShiftKeyDown(state: State, action: Action): State {
+  // Multiselect
+  return state;
+}
+
+function reduceKeyUp(state: State, action: Action): State {
+  // No multiselect, along with whatever else needs to be done here
+  return state;
 }
 
 /*

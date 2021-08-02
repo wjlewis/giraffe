@@ -19,12 +19,12 @@ export function useReducer<St, A>(
 }
 
 export function useMouse<T extends HTMLElement>(
-  cfg: UseCursor
+  handlers: UseCursor
 ): React.RefObject<T> {
   const [bounds, setBounds] = React.useState({ left: 0, top: 0 });
   const hostRef: React.RefObject<T> = React.useRef(null);
 
-  const { onMouseDown = noOp, onMouseMove = noOp, onMouseUp = noOp } = cfg;
+  const { onMouseDown = noOp, onMouseMove = noOp, onMouseUp = noOp } = handlers;
 
   React.useEffect(() => {
     if (hostRef.current) {
@@ -70,4 +70,37 @@ export interface UseCursor {
   onMouseDown?: () => unknown;
   onMouseMove?: (pos: Vec) => unknown;
   onMouseUp?: () => unknown;
+}
+
+export function useKeyboard(handlers: UseKeyboard) {
+  const { onKeyDown = noOp, onKeyUp = noOp } = handlers;
+  React.useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const { key, ctrlKey, metaKey } = e;
+      onKeyDown({ key, ctrlKey, metaKey });
+    }
+
+    function handleKeyUp() {
+      onKeyUp();
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [onKeyDown, onKeyUp]);
+}
+
+export interface UseKeyboard {
+  onKeyDown?: (info: KeyDownInfo) => unknown;
+  onKeyUp?: () => unknown;
+}
+
+export interface KeyDownInfo {
+  key: string;
+  ctrlKey: boolean;
+  metaKey: boolean;
 }
