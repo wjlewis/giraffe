@@ -51,3 +51,11 @@ export function set1<A>(obj: any, path: (string | number)[], value: A): any {
     };
   }
 }
+
+export function xOrIn<A>(xs: A[], x: A): A[] {
+  if (xs.includes(x)) {
+    return xs.filter(x1 => x1 !== x);
+  } else {
+    return [x, ...xs];
+  }
+}

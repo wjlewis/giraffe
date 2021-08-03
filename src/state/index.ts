@@ -1,5 +1,5 @@
 import React from 'react';
-import { set, Vec, Rect, Option } from '../tools';
+import { set, Vec, Rect, Option, xOrIn } from '../tools';
 import { Action, ActionType } from './actions';
 import {
   HoverTarget,
@@ -19,11 +19,17 @@ export const StateContext = React.createContext({
   dispatch: null as any as React.Dispatch<Action>,
 });
 
+export interface State {
+  ui: UIState;
+  graph: GraphState;
+}
+
 export interface UIState {
   mousePos: Vec;
   hoverTarget: HoverTarget;
   selection: Selection;
   dragSubject: DragSubject;
+  isMultiSelect: boolean;
 }
 
 export interface GraphState {
@@ -50,74 +56,21 @@ export interface Edge {
   controlPtPos: Vec;
 }
 
-export interface State {
-  ui: UIState;
-  graph: GraphState;
-}
-
 export const initState: State = {
   ui: {
     mousePos: new Vec(0, 0),
     hoverTarget: HoverTarget.Canvas(),
     selection: Selection.None(),
     dragSubject: DragSubject.None(),
+    isMultiSelect: false,
   },
   graph: {
     vertices: {
-      byId: {
-        0: {
-          id: 0,
-          name: '',
-          pos: new Vec(200, 50),
-        },
-        1: {
-          id: 1,
-          name: 'b',
-          pos: new Vec(600, 450),
-        },
-        2: {
-          id: 2,
-          name: 'c',
-          pos: new Vec(700, 500),
-        },
-        3: {
-          id: 3,
-          name: '',
-          pos: new Vec(600, 600),
-        },
-        4: {
-          id: 4,
-          name: '',
-          pos: new Vec(800, 100),
-        },
-        5: {
-          id: 5,
-          name: '',
-          pos: new Vec(100, 600),
-        },
-        6: {
-          id: 6,
-          name: '',
-          pos: new Vec(900, 300),
-        },
-      },
+      byId: {},
       wip: Option.None(),
     },
     edges: {
-      byId: {
-        0: {
-          id: 0,
-          startVertexId: 0,
-          endVertexId: 1,
-          controlPtPos: new Vec(600, 300),
-        },
-        2: {
-          id: 2,
-          startVertexId: 1,
-          endVertexId: 2,
-          controlPtPos: new Vec(500, 500),
-        },
-      },
+      byId: {},
       wip: Option.None(),
     },
   },
@@ -148,6 +101,8 @@ export function reducer(state: State, action: Action): State {
       return reduceRemoveVertices(state, action);
     case ActionType.AddEdge:
       return reduceAddEdge(state, action);
+    case ActionType.RemoveEdge:
+      return reduceRemoveEdge(state, action);
     case ActionType.ShiftKeyDown:
       return reduceShiftKeyDown(state, action);
     case ActionType.KeyUp:
@@ -186,30 +141,25 @@ function reduceMouseDown(state: State, action: Action): State {
           );
         },
         vertices: vertexIds => {
-          if (vertexIds.includes(vertexId)) {
-            const withWip = copyCurrentToWip(state);
-            const vertexOffsets = computeVertexOffsets(withWip, vertexIds);
-            const edgeOffsets = computeEdgeOffsets(withWip, vertexIds);
-            return set(
-              withWip,
-              ['ui', 'dragSubject'],
-              DragSubject.Vertices(vertexOffsets, edgeOffsets)
-            );
-          } else {
-            const withWip = copyCurrentToWip(state);
-            const vertexOffsets = computeVertexOffsets(withWip, [vertexId]);
-            const edgeOffsets = computeEdgeOffsets(withWip, [vertexId]);
-            const withDragTarget = set(
-              withWip,
-              ['ui', 'dragSubject'],
-              DragSubject.Vertices(vertexOffsets, edgeOffsets)
-            );
-            return set(
-              withDragTarget,
-              ['ui', 'selection'],
-              Selection.Vertices([vertexId])
-            );
-          }
+          const allVertexIds = sel.isMultiSelect(state)
+            ? xOrIn(vertexIds, vertexId)
+            : vertexIds.includes(vertexId)
+            ? vertexIds
+            : [vertexId];
+
+          const withWip = copyCurrentToWip(state);
+          const vertexOffsets = computeVertexOffsets(withWip, allVertexIds);
+          const edgeOffsets = computeEdgeOffsets(withWip, allVertexIds);
+          const withDragTarget = set(
+            withWip,
+            ['ui', 'dragSubject'],
+            DragSubject.Vertices(vertexOffsets, edgeOffsets)
+          );
+          return set(
+            withDragTarget,
+            ['ui', 'selection'],
+            Selection.Vertices(allVertexIds)
+          );
         },
       });
     },
@@ -229,11 +179,10 @@ function reduceMouseDown(state: State, action: Action): State {
         ['ui', 'hoverTarget'],
         HoverTarget.Vertex(id)
       );
-      return set(withVertexHovered, ['graph', 'vertices', 'byId', id], {
-        id,
-        name: '',
-        pos: mousePos,
-      });
+      const vertices = sel.selectVertices(withVertexHovered);
+      const updated = [...vertices, { id, name: '', pos: mousePos }];
+      const byId = updated.reduce((acc, x) => ({ ...acc, [x.id]: x }), {});
+      return set(withVertexHovered, ['graph', 'vertices', 'byId'], byId);
     },
   });
 }
@@ -312,16 +261,22 @@ function reduceMouseUp(state: State, action: Action): State {
     none: () => withNoDragSubject,
     boxSelection: rootPos => {
       const mousePos = sel.selectMousePos(withNoDragSubject);
-      const hoveredVertices = sel.selectVerticesInRect(
+      const hoveredVertexIds = sel.selectVertexIdsInRect(
         state,
         new Rect(rootPos, mousePos),
         20
       );
+
+      const currentlySelectedVertexIds = sel.selectSelectedVertexIds(state);
+      const selectedVertexIds = sel.isMultiSelect(state)
+        ? [...currentlySelectedVertexIds, ...hoveredVertexIds]
+        : hoveredVertexIds;
+
       return set(
         withNoDragSubject,
         ['ui', 'selection'],
-        hoveredVertices.length > 0
-          ? Selection.Vertices(hoveredVertices)
+        selectedVertexIds.length > 0
+          ? Selection.Vertices(selectedVertexIds)
           : Selection.None()
       );
     },
@@ -541,12 +496,19 @@ function reduceAddEdge(state: State, action: Action): State {
   return set(withEdge, ['ui', 'selection'], Selection.None());
 }
 
+function reduceRemoveEdge(state: State, action: Action): State {
+  const edgeId = action.payload;
+  const edges = sel.selectEdges(state);
+  const updated = edges.filter(e => e.id !== edgeId);
+  const byId = updated.reduce((acc, x) => ({ ...acc, [x.id]: x }), {});
+  return set(state, ['graph', 'edges', 'byId'], byId);
+}
+
 function reduceShiftKeyDown(state: State, action: Action): State {
-  // Multiselect
-  return state;
+  return set(state, ['ui', 'isMultiSelect'], true);
 }
 
 function reduceKeyUp(state: State, action: Action): State {
-  // No multiselect, along with whatever else needs to be done here
-  return state;
+  // TODO Perform whatever other key actions need to be performed here
+  return set(state, ['ui', 'isMultiSelect'], false);
 }

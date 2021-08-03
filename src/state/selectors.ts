@@ -75,7 +75,7 @@ export function selectHoverTarget(state: State): HoverTarget {
   return state.ui.hoverTarget;
 }
 
-export function selectVerticesInRect(
+export function selectVertexIdsInRect(
   state: State,
   rect: Rect,
   padding: number
@@ -166,7 +166,7 @@ export function selectEdgeFromEndpoints(
 export function selectNextVertexId(state: State): number {
   const vertices = selectVertices(state);
   const ids = vertices.map(v => v.id);
-  return Math.max(...ids) + 1;
+  return Math.max(0, ...ids) + 1;
 }
 
 export function selectNewVertexPos(state: State): Option<Vec> {
@@ -181,5 +181,16 @@ export function selectNewVertexPos(state: State): Option<Vec> {
 export function selectNextEdgeId(state: State): number {
   const edges = selectEdges(state);
   const ids = edges.map(e => e.id);
-  return Math.max(...ids) + 1;
+  return Math.max(0, ...ids) + 1;
+}
+
+export function isMultiSelect(state: State): boolean {
+  return state.ui.isMultiSelect;
+}
+
+export function selectSelectedVertexIds(state: State): number[] {
+  return selectSelection(state).match({
+    none: () => [],
+    vertices: vertexIds => vertexIds,
+  });
 }
