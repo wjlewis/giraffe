@@ -107,6 +107,8 @@ export function reducer(state: State, action: Action): State {
       return reduceShiftKeyDown(state, action);
     case ActionType.KeyUp:
       return reduceKeyUp(state, action);
+    case ActionType.CancelCurrentAction:
+      return reduceCancelCurrentAction(state, action);
     default:
       return state;
   }
@@ -470,7 +472,17 @@ function reduceRemoveVertices(state: State, action: Action): State {
     (acc, x) => ({ ...acc, [x.id]: x }),
     {}
   );
-  return set(withoutVertices, ['graph', 'edges', 'byId'], edgesById);
+  const withoutEdges = set(
+    withoutVertices,
+    ['graph', 'edges', 'byId'],
+    edgesById
+  );
+  const hoveringCanvas = set(
+    withoutEdges,
+    ['ui', 'hoverTarget'],
+    HoverTarget.Canvas()
+  );
+  return set(hoveringCanvas, ['ui', 'selection'], Selection.None());
 }
 
 function reduceAddEdge(state: State, action: Action): State {
@@ -511,4 +523,31 @@ function reduceShiftKeyDown(state: State, action: Action): State {
 function reduceKeyUp(state: State, action: Action): State {
   // TODO Perform whatever other key actions need to be performed here
   return set(state, ['ui', 'isMultiSelect'], false);
+}
+
+function reduceCancelCurrentAction(state: State, action: Action): State {
+  const currentHoverTarget = sel.selectHoverTarget(state);
+  const hoverTarget = currentHoverTarget.isNewVertex()
+    ? HoverTarget.Canvas()
+    : currentHoverTarget;
+
+  return {
+    ...state,
+    ui: {
+      ...state.ui,
+      dragSubject: DragSubject.None(),
+      hoverTarget,
+    },
+    graph: {
+      ...state.graph,
+      vertices: {
+        ...state.graph.vertices,
+        wip: Option.None(),
+      },
+      edges: {
+        ...state.graph.edges,
+        wip: Option.None(),
+      },
+    },
+  };
 }

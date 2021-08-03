@@ -24,6 +24,7 @@ export enum ActionType {
 
   // More specific keyboard actions
   ShiftKeyDown = 'ShiftKeyDown',
+  CancelCurrentAction = 'CancelCurrentAction',
 }
 
 export function mouseDown(): Action {
@@ -80,4 +81,8 @@ export function addEdge(startVertexId: number, endVertexId: number): Action {
 
 export function removeEdge(edgeId: number): Action {
   return { type: ActionType.RemoveEdge, payload: edgeId };
+}
+
+export function cancelCurrentAction(): Action {
+  return { type: ActionType.CancelCurrentAction };
 }

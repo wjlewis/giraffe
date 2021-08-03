@@ -87,7 +87,7 @@ export function selectVertexIdsInRect(
 
 export function selectAvailableActions(state: State): AppAction[] {
   const addVertexAction = {
-    name: 'Add Vertex',
+    name: 'Add Vertex [a]',
     clickAction: addVertex(),
   };
 
@@ -99,7 +99,7 @@ export function selectAvailableActions(state: State): AppAction[] {
           return [
             addVertexAction,
             {
-              name: 'Remove Vertex',
+              name: 'Remove Vertex [d]',
               clickAction: removeVertices(vertexIds),
             },
           ];
@@ -107,7 +107,7 @@ export function selectAvailableActions(state: State): AppAction[] {
           const common = [
             addVertexAction,
             {
-              name: 'Remove Vertices',
+              name: 'Remove Vertices [d]',
               clickAction: removeVertices(vertexIds),
             },
           ];
@@ -117,14 +117,14 @@ export function selectAvailableActions(state: State): AppAction[] {
             some: edge => [
               ...common,
               {
-                name: 'Remove Edge',
+                name: 'Remove Edge [e]',
                 clickAction: removeEdge(edge.id),
               },
             ],
             none: () => [
               ...common,
               {
-                name: 'Add Edge',
+                name: 'Add Edge [e]',
                 clickAction: addEdge(vertexId1, vertexId2),
               },
             ],
@@ -134,7 +134,7 @@ export function selectAvailableActions(state: State): AppAction[] {
           return [
             addVertexAction,
             {
-              name: 'Remove Vertices',
+              name: 'Remove Vertices [d]',
               clickAction: removeVertices(vertexIds),
             },
           ];

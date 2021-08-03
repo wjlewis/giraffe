@@ -42,6 +42,10 @@ export class DragSubject {
     return this.type === DragSubjectType.None;
   }
 
+  isBoxSelection(): boolean {
+    return this.type === DragSubjectType.BoxSelection;
+  }
+
   match<A>(match: DragSubjectMatch<A>): A {
     switch (this.type) {
       case DragSubjectType.None:

@@ -43,3 +43,20 @@ nav {
   align-items: center;
   justify-content: space-between;
 }
+
+nav .actions {
+  height: 100%;
+}
+
+.actions button {
+  height: 100%;
+  padding: 0 3em;
+  font-family: 'Fira Mono', monospace;
+  cursor: pointer;
+  background-color: unset;
+  border: none;
+}
+
+.actions button:hover {
+  background-color: blueviolet;
+}

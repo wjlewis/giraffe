@@ -7,13 +7,13 @@ const Actions: React.FC<{}> = () => {
   const actions = selectAvailableActions(state);
 
   return (
-    <nav>
+    <div className="actions">
       {actions.map((action, id) => (
         <button key={id} onClick={() => dispatch(action.clickAction)}>
           {action.name}
         </button>
       ))}
-    </nav>
+    </div>
   );
 };
 
