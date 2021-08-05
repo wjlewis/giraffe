@@ -1,20 +1,6 @@
 import React from 'react';
-import { useReducer, useMouse, useKeyboard } from './hooks';
-import {
-  reducer,
-  initState,
-  logActions,
-  dispatchKeyEvents,
-  StateContext,
-  mouseDown,
-  mouseMove,
-  mouseUp,
-  ActionType,
-  selectVertices,
-  selectEdges,
-  keyDown,
-  keyUp,
-} from './state';
+import { useReducer, useMousePos, useKeyboard } from './hooks';
+import * as St from './state';
 import Vertex from './Vertex';
 import Edge from './Edge';
 import BoxSelection from './BoxSelection';
@@ -23,28 +9,41 @@ import NewVertex from './NewVertex';
 
 const App: React.FC<{}> = () => {
   const [state, dispatch] = useReducer(
-    reducer,
-    initState,
-    dispatchKeyEvents(),
-    logActions(ActionType.MouseMove)
+    St.reducer,
+    St.initState,
+    St.dispatchKeyEvents(),
+    St.logActions(St.ActionType.MouseMove)
   );
-  const hostRef = useMouse({
-    onMouseDown: () => dispatch(mouseDown()),
-    onMouseMove: pos => dispatch(mouseMove(pos)),
-    onMouseUp: () => dispatch(mouseUp()),
-  });
+  const hostRef = useMousePos(pos => dispatch(St.mouseMove(pos)));
   useKeyboard({
-    onKeyDown: info => dispatch(keyDown(info)),
-    onKeyUp: () => dispatch(keyUp()),
+    onKeyDown: info => dispatch(St.keyDown(info)),
+    onKeyUp: () => dispatch(St.keyUp()),
   });
 
-  const edges = selectEdges(state);
-  const vertices = selectVertices(state);
+  const edges = St.allEdges(state);
+  const vertices = St.allVertices(state);
+
+  function handleMouseDown(e: React.MouseEvent) {
+    if (e.currentTarget !== e.target) {
+      return;
+    }
+
+    return dispatch(St.mouseDownCanvas());
+  }
+
+  function handleMouseUp() {
+    return dispatch(St.mouseUp());
+  }
 
   return (
-    <StateContext.Provider value={{ state, dispatch }}>
+    <St.StateContext.Provider value={{ state, dispatch }}>
       <main>
-        <svg xmlns="http://www.w3.org/2000/svg" ref={hostRef as any}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          ref={hostRef as any}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+        >
           {edges.map(e => (
             <Edge key={e.id} {...e} />
           ))}
@@ -64,7 +63,7 @@ const App: React.FC<{}> = () => {
           <Actions />
         </nav>
       </footer>
-    </StateContext.Provider>
+    </St.StateContext.Provider>
   );
 };
 

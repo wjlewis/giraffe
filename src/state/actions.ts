@@ -7,16 +7,14 @@ export interface Action {
 }
 
 export enum ActionType {
-  MouseDown = 'MouseDown',
+  MouseDownCanvas = 'MouseDownCanvas',
+  MouseDownVertex = 'MouseDownVertex',
+  MouseDownEdgeControlPt = 'MouseDownEdgeControlPt',
+  MouseDownNewVertex = 'MouseDownNewVertex',
   MouseMove = 'MouseMove',
   MouseUp = 'MouseUp',
-  MouseEnterVertex = 'MouseEnterVertex',
-  MouseLeaveVertex = 'MouseLeaveVertex',
-  MouseEnterEdgeControlPt = 'MouseEnterEdgeControlPt',
-  MouseLeaveEdgeControlPt = 'MouseLeaveEdgeControlPt',
   KeyDown = 'KeyDown',
   KeyUp = 'KeyUp',
-
   AddVertex = 'AddVertex',
   RemoveVertices = 'RemoveVertices',
   AddEdge = 'AddEdge',
@@ -27,8 +25,20 @@ export enum ActionType {
   CancelCurrentAction = 'CancelCurrentAction',
 }
 
-export function mouseDown(): Action {
-  return { type: ActionType.MouseDown };
+export function mouseDownCanvas(): Action {
+  return { type: ActionType.MouseDownCanvas };
+}
+
+export function mouseDownVertex(vertexId: number): Action {
+  return { type: ActionType.MouseDownVertex, payload: vertexId };
+}
+
+export function mouseDownEdgeControlPt(edgeId: number): Action {
+  return { type: ActionType.MouseDownEdgeControlPt, payload: edgeId };
+}
+
+export function mouseDownNewVertex(): Action {
+  return { type: ActionType.MouseDownNewVertex };
 }
 
 export function mouseMove(pos: Vec): Action {
@@ -37,22 +47,6 @@ export function mouseMove(pos: Vec): Action {
 
 export function mouseUp(): Action {
   return { type: ActionType.MouseUp };
-}
-
-export function mouseEnterVertex(vertexId: number): Action {
-  return { type: ActionType.MouseEnterVertex, payload: vertexId };
-}
-
-export function mouseLeaveVertex(vertexId: number): Action {
-  return { type: ActionType.MouseLeaveVertex, payload: vertexId };
-}
-
-export function mouseEnterEdgeControlPt(edgeId: number): Action {
-  return { type: ActionType.MouseEnterEdgeControlPt, payload: edgeId };
-}
-
-export function mouseLeaveEdgeControlPt(edgeId: number): Action {
-  return { type: ActionType.MouseLeaveEdgeControlPt, payload: edgeId };
 }
 
 export function keyDown(info: KeyDownInfo): Action {

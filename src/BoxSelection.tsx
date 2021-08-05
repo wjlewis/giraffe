@@ -1,15 +1,13 @@
 import React from 'react';
-import { StateContext, selectMousePos, selectDragSubject } from './state';
+import * as St from './state';
 import { Rect } from './tools';
 
 const BoxSelection: React.FC<{}> = () => {
-  const { state } = React.useContext(StateContext);
-  const dragSubject = selectDragSubject(state);
+  const { state } = React.useContext(St.StateContext);
 
-  return dragSubject.match({
+  return St.dragSubject(state).match({
     boxSelection: rootPos => {
-      const mousePos = selectMousePos(state);
-      const rect = new Rect(rootPos, mousePos);
+      const rect = new Rect(rootPos, St.mousePos(state));
 
       return (
         <rect
@@ -25,6 +23,7 @@ const BoxSelection: React.FC<{}> = () => {
     none: () => null,
     vertices: () => null,
     edgeControlPt: () => null,
+    newVertex: () => null,
   });
 };
 

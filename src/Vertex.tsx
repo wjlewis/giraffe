@@ -1,12 +1,8 @@
 import React from 'react';
 import { Vec } from './tools';
-import {
-  StateContext,
-  mouseEnterVertex,
-  mouseLeaveVertex,
-  isVertexSelected,
-  isVertexHovered,
-} from './state';
+import * as St from './state';
+
+export const VERTEX_RADIUS = 15;
 
 export interface VertexProps {
   id: number;
@@ -15,18 +11,18 @@ export interface VertexProps {
 }
 
 const Vertex: React.FC<VertexProps> = props => {
-  const { state, dispatch } = React.useContext(StateContext);
+  const { state, dispatch } = React.useContext(St.StateContext);
   const { id, pos } = props;
 
-  const isSelected = isVertexSelected(state, id);
-  const isHovered = isVertexHovered(state, id);
+  const isSelected = St.isVertexSelected(state, id);
+  const isHovered = St.isVertexHovered(state, id);
 
-  function handleMouseEnter() {
-    dispatch(mouseEnterVertex(id));
-  }
+  function handleMouseDown(e: React.MouseEvent) {
+    if (e.currentTarget !== e.target) {
+      return;
+    }
 
-  function handleMouseLeave() {
-    dispatch(mouseLeaveVertex(id));
+    return dispatch(St.mouseDownVertex(id));
   }
 
   return (
@@ -34,12 +30,11 @@ const Vertex: React.FC<VertexProps> = props => {
       className="vertex"
       cx={pos.x}
       cy={pos.y}
-      r="15"
+      r={VERTEX_RADIUS}
       stroke="#444"
       strokeWidth={isHovered ? 3 : 1}
       fill={isSelected ? 'red' : '#fff'}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseDown={handleMouseDown}
     />
   );
 };

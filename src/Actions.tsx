@@ -1,10 +1,10 @@
 import React from 'react';
-import { StateContext, selectAvailableActions } from './state';
+import * as St from './state';
 
 const Actions: React.FC<{}> = () => {
-  const { state, dispatch } = React.useContext(StateContext);
+  const { state, dispatch } = React.useContext(St.StateContext);
 
-  const actions = selectAvailableActions(state);
+  const actions = St.availableActions(state);
 
   return (
     <div className="actions">

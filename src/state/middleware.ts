@@ -39,19 +39,19 @@ export function dispatchKeyEvents(): Middleware<State, Action> {
             return dispatch(addVertex());
           // TODO Consolidate this logic?
           case 'd':
-            return sel.selectSelection(state).match({
+            return sel.selection(state).match({
               none: () => dispatch(action),
               vertices: vertexIds => dispatch(removeVertices(vertexIds)),
             });
           // TODO Consolidate?
           case 'e':
-            return sel.selectSelection(state).match({
+            return sel.selection(state).match({
               none: () => dispatch(action),
               vertices: vertexIds => {
                 if (vertexIds.length === 2) {
                   const [startVertexId, endVertexId] = vertexIds;
                   return sel
-                    .selectEdgeFromEndpoints(state, startVertexId, endVertexId)
+                    .edgeFromEndpoints(state, startVertexId, endVertexId)
                     .match({
                       none: () => dispatch(addEdge(startVertexId, endVertexId)),
                       some: edge => dispatch(removeEdge(edge.id)),

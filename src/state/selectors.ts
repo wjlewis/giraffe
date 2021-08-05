@@ -1,6 +1,6 @@
 import { State, Vertex, Edge } from './index';
-import { DragSubject, Selection, HoverTarget } from './misc';
-import { Rect, Vec, Option } from '../tools';
+import { DragSubject, Selection } from './misc';
+import { Vec, Option, Rect } from '../tools';
 import {
   Action,
   addVertex,
@@ -8,19 +8,67 @@ import {
   addEdge,
   removeEdge,
 } from './actions';
+import { VertexId, EdgeId } from './state';
+import { VERTEX_RADIUS } from '../Vertex';
 
-export function selectVertices(state: State): Vertex[] {
+export function vertexPos(state: State, vertexId: VertexId): Vec {
   return state.graph.vertices.wip.match({
-    some: vertices => Object.values(vertices),
-    none: () => Object.values(state.graph.vertices.byId),
+    none: () => state.graph.vertices.byId[vertexId].pos,
+    some: byId => byId[vertexId].pos,
   });
 }
 
-export function selectEdges(state: State): Edge[] {
-  return state.graph.edges.wip.match({
-    some: edges => Object.values(edges),
-    none: () => Object.values(state.graph.edges.byId),
+export function selectedVertexIds(state: State): VertexId[] {
+  return state.ui.selection.match({
+    none: () => [],
+    vertices: vertexIds => vertexIds,
   });
+}
+
+export function mousePos(state: State): Vec {
+  return state.ui.mousePos;
+}
+
+export function allVertices(state: State): Vertex[] {
+  return Object.values(
+    state.graph.vertices.wip.match({
+      none: () => state.graph.vertices.byId,
+      some: byId => byId,
+    })
+  );
+}
+
+export function allEdges(state: State): Edge[] {
+  return Object.values(
+    state.graph.edges.wip.match({
+      none: () => state.graph.edges.byId,
+      some: byId => byId,
+    })
+  );
+}
+
+export function isMultiSelect(state: State): boolean {
+  return state.ui.isMultiSelect;
+}
+
+export function nextVertexId(state: State): VertexId {
+  const idsInUse = allVertices(state).map(({ id }) => id);
+  return Math.max(0, ...idsInUse) + 1;
+}
+
+export function nextEdgeId(state: State): EdgeId {
+  const idsInUse = allEdges(state).map(({ id }) => id);
+  return Math.max(0, ...idsInUse) + 1;
+}
+
+export function newVertexPos(state: State): Option<Vec> {
+  return state.ui.dragSubject.isNewVertex()
+    ? Option.Some(state.ui.mousePos)
+    : Option.None();
+}
+
+export function dragSubject(state: State): DragSubject {
+  return state.ui.dragSubject;
 }
 
 export function isVertexSelected(state: State, vertexId: number): boolean {
@@ -31,67 +79,30 @@ export function isVertexSelected(state: State, vertexId: number): boolean {
 }
 
 export function isVertexHovered(state: State, vertexId: number): boolean {
-  const dragSubject = selectDragSubject(state);
-
-  return state.ui.hoverTarget.match({
-    canvas: () =>
-      dragSubject.match({
-        boxSelection: rootPos => {
-          const mousePos = selectMousePos(state);
-          const rect = new Rect(rootPos, mousePos);
-          const vertexPos = selectVertexPos(state, vertexId);
-          return rect.contains(vertexPos, 20);
-        },
-        none: () => false,
-        vertices: () => false,
-        edgeControlPt: () => false,
-      }),
-    vertex: vertexId1 => dragSubject.isNone() && vertexId1 === vertexId,
+  return state.ui.dragSubject.match({
+    boxSelection: rootPos => {
+      const rect = new Rect(rootPos, mousePos(state));
+      const vertex = state.graph.vertices.byId[vertexId];
+      return rect.contains(vertex.pos, VERTEX_RADIUS);
+    },
+    none: () => false,
+    vertices: () => false,
     edgeControlPt: () => false,
     newVertex: () => false,
   });
 }
 
-export function selectVertexPos(state: State, vertexId: number): Vec {
-  return state.graph.vertices.wip.match({
-    none: () => state.graph.vertices.byId[vertexId].pos,
-    some: vertices => vertices[vertexId].pos,
-  });
-}
-
-export function selectMousePos(state: State): Vec {
-  return state.ui.mousePos;
-}
-
-export function selectDragSubject(state: State): DragSubject {
-  return state.ui.dragSubject;
-}
-
-export function selectSelection(state: State): Selection {
+export function selection(state: State): Selection {
   return state.ui.selection;
 }
 
-export function selectHoverTarget(state: State): HoverTarget {
-  return state.ui.hoverTarget;
-}
-
-export function selectVertexIdsInRect(
-  state: State,
-  rect: Rect,
-  padding: number
-): number[] {
-  return Object.values(state.graph.vertices.byId)
-    .filter(({ pos }) => rect.contains(pos, padding))
-    .map(({ id }) => id);
-}
-
-export function selectAvailableActions(state: State): AppAction[] {
+export function availableActions(state: State): AppAction[] {
   const addVertexAction = {
     name: 'Add Vertex [a]',
     clickAction: addVertex(),
   };
 
-  return selectSelection(state).match({
+  return selection(state).match({
     none: () => [addVertexAction],
     vertices: vertexIds => {
       switch (vertexIds.length) {
@@ -112,7 +123,7 @@ export function selectAvailableActions(state: State): AppAction[] {
             },
           ];
           const [vertexId1, vertexId2] = vertexIds;
-          const edge = selectEdgeFromEndpoints(state, vertexId1, vertexId2);
+          const edge = edgeFromEndpoints(state, vertexId1, vertexId2);
           return edge.match({
             some: edge => [
               ...common,
@@ -148,13 +159,13 @@ export interface AppAction {
   clickAction: Action;
 }
 
-export function selectEdgeFromEndpoints(
+export function edgeFromEndpoints(
   state: State,
   vertexId1: number,
   vertexId2: number
 ): Option<Edge> {
   const vertices = [vertexId1, vertexId2];
-  const edges = selectEdges(state);
+  const edges = allEdges(state);
   return Option.from(
     edges.find(
       e =>
@@ -163,34 +174,9 @@ export function selectEdgeFromEndpoints(
   );
 }
 
-export function selectNextVertexId(state: State): number {
-  const vertices = selectVertices(state);
-  const ids = vertices.map(v => v.id);
-  return Math.max(0, ...ids) + 1;
-}
-
-export function selectNewVertexPos(state: State): Option<Vec> {
-  return selectHoverTarget(state).match({
-    canvas: () => Option.None(),
-    vertex: () => Option.None(),
-    edgeControlPt: () => Option.None(),
-    newVertex: () => Option.Some(selectMousePos(state)),
-  });
-}
-
-export function selectNextEdgeId(state: State): number {
-  const edges = selectEdges(state);
-  const ids = edges.map(e => e.id);
-  return Math.max(0, ...ids) + 1;
-}
-
-export function isMultiSelect(state: State): boolean {
-  return state.ui.isMultiSelect;
-}
-
-export function selectSelectedVertexIds(state: State): number[] {
-  return selectSelection(state).match({
-    none: () => [],
-    vertices: vertexIds => vertexIds,
-  });
+export function vertexIdsInRect(state: State, rect: Rect): VertexId[] {
+  const vertices = allVertices(state);
+  return vertices
+    .filter(vertex => rect.contains(vertex.pos, VERTEX_RADIUS))
+    .map(({ id }) => id);
 }

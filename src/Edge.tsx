@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  StateContext,
-  selectVertexPos,
-  mouseEnterEdgeControlPt,
-  mouseLeaveEdgeControlPt,
-} from './state';
+import * as St from './state';
 import { Vec } from './tools';
 
 export interface EdgeProps {
@@ -15,23 +10,23 @@ export interface EdgeProps {
 }
 
 const Edge: React.FC<EdgeProps> = props => {
-  const { state, dispatch } = React.useContext(StateContext);
+  const { state, dispatch } = React.useContext(St.StateContext);
 
   const { startVertexId, endVertexId, controlPtPos: c, id } = props;
-  const p = selectVertexPos(state, startVertexId);
-  const q = selectVertexPos(state, endVertexId);
+  const p = St.vertexPos(state, startVertexId);
+  const q = St.vertexPos(state, endVertexId);
 
   const pq = q.minus(p);
   const m = pq.scale(1 / 2);
   const pc = c.minus(p);
   const l = p.plus(pc.scale(2)).minus(m);
 
-  function handleMouseEnter() {
-    dispatch(mouseEnterEdgeControlPt(id));
-  }
+  function handleMouseDown(e: React.MouseEvent) {
+    if (e.currentTarget !== e.target) {
+      return;
+    }
 
-  function handleMouseLeave() {
-    dispatch(mouseLeaveEdgeControlPt(id));
+    return dispatch(St.mouseDownEdgeControlPt(id));
   }
 
   return (
@@ -47,8 +42,7 @@ const Edge: React.FC<EdgeProps> = props => {
         cy={c.y}
         r="6"
         fill="red"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseDown={handleMouseDown}
       />
     </g>
   );

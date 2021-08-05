@@ -18,13 +18,11 @@ export function useReducer<St, A>(
   return [state, dispatch];
 }
 
-export function useMouse<T extends HTMLElement>(
-  handlers: UseCursor
+export function useMousePos<T extends HTMLElement>(
+  onMove: (pos: Vec) => unknown
 ): React.RefObject<T> {
   const [bounds, setBounds] = React.useState({ left: 0, top: 0 });
   const hostRef: React.RefObject<T> = React.useRef(null);
-
-  const { onMouseDown = noOp, onMouseMove = noOp, onMouseUp = noOp } = handlers;
 
   React.useEffect(() => {
     if (hostRef.current) {
@@ -34,42 +32,17 @@ export function useMouse<T extends HTMLElement>(
   }, [hostRef, setBounds]);
 
   React.useEffect(() => {
-    function handleMouseDown(e: MouseEvent) {
-      onMouseDown();
-    }
-
-    const current = hostRef.current;
-    current?.addEventListener('mousedown', handleMouseDown);
-    return () => current?.removeEventListener('mousedown', handleMouseDown);
-  }, [hostRef, onMouseDown]);
-
-  React.useEffect(() => {
     const { left, top } = bounds;
 
     function handleMouseMove(e: MouseEvent) {
-      onMouseMove(new Vec(e.clientX - left, e.clientY - top));
+      onMove(new Vec(e.clientX - left, e.clientY - top));
     }
 
     document.addEventListener('mousemove', handleMouseMove);
     return () => document.removeEventListener('mousemove', handleMouseMove);
-  }, [bounds, onMouseMove]);
-
-  React.useEffect(() => {
-    function handleMouseUp(e: MouseEvent) {
-      onMouseUp();
-    }
-
-    document.addEventListener('mouseup', handleMouseUp);
-    return () => document.removeEventListener('mouseup', handleMouseUp);
-  }, [onMouseUp]);
+  }, [bounds, onMove]);
 
   return hostRef;
-}
-
-export interface UseCursor {
-  onMouseDown?: () => unknown;
-  onMouseMove?: (pos: Vec) => unknown;
-  onMouseUp?: () => unknown;
 }
 
 export function useKeyboard(handlers: UseKeyboard) {
