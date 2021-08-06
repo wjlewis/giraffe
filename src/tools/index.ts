@@ -19,3 +19,18 @@ export function xOrIn<A>(xs: A[], x: A): A[] {
     return [x, ...xs];
   }
 }
+
+export function classNames(...args: any[]): string {
+  return args
+    .map(arg => {
+      if (arg && typeof arg === 'object') {
+        return Object.keys(arg)
+          .filter(key => arg[key])
+          .map(key => String(key))
+          .join(' ');
+      } else {
+        return String(arg);
+      }
+    })
+    .join(' ');
+}

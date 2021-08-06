@@ -23,6 +23,7 @@ export enum ActionType {
   // More specific keyboard actions
   ShiftKeyDown = 'ShiftKeyDown',
   CancelCurrentAction = 'CancelCurrentAction',
+  SelectAllVertices = 'SelectAllVertices',
 }
 
 export function mouseDownCanvas(): Action {
@@ -79,4 +80,8 @@ export function removeEdge(edgeId: number): Action {
 
 export function cancelCurrentAction(): Action {
   return { type: ActionType.CancelCurrentAction };
+}
+
+export function selectAllVertices(): Action {
+  return { type: ActionType.SelectAllVertices };
 }

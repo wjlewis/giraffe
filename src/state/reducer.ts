@@ -39,6 +39,8 @@ export function reducer(state: State, action: Action): State {
       return reduceKeyUp(state);
     case ActionType.CancelCurrentAction:
       return reduceCancelCurrentAction(state);
+    case ActionType.SelectAllVertices:
+      return reduceSelectAllVertices(state);
     default:
       return state;
   }
@@ -441,6 +443,17 @@ function reduceCancelCurrentAction(state: State): State {
         ...state.graph.edges,
         wip: Option.None(),
       },
+    },
+  };
+}
+
+function reduceSelectAllVertices(state: State): State {
+  const allVertexIds = Sel.allVertices(state).map(({ id }) => id);
+  return {
+    ...state,
+    ui: {
+      ...state.ui,
+      selection: Selection.Vertices(allVertexIds),
     },
   };
 }

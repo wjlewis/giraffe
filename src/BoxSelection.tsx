@@ -15,8 +15,7 @@ const BoxSelection: React.FC<{}> = () => {
           y={rect.y}
           width={rect.width}
           height={rect.height}
-          stroke="none"
-          fill="rgba(0, 255, 0, 0.3)"
+          className="box-selection"
         />
       );
     },

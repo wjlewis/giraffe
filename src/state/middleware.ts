@@ -1,15 +1,7 @@
 import React from 'react';
 import { State } from './index';
-import {
-  Action,
-  ActionType,
-  shiftKeyDown,
-  addVertex,
-  removeVertices,
-  addEdge,
-  removeEdge,
-  cancelCurrentAction,
-} from './actions';
+import { Action, ActionType } from './actions';
+import * as Act from './actions';
 import * as sel from './selectors';
 
 export interface Middleware<St, A> {
@@ -34,16 +26,18 @@ export function dispatchKeyEvents(): Middleware<State, Action> {
       if (action.type === ActionType.KeyDown) {
         switch (action.payload.key) {
           case 'Shift':
-            return dispatch(shiftKeyDown());
+            return dispatch(Act.shiftKeyDown());
           case 'a':
-            return dispatch(addVertex());
-          // TODO Consolidate this logic?
+            if (action.payload.ctrlKey || action.payload.metaKey) {
+              return dispatch(Act.selectAllVertices());
+            } else {
+              return dispatch(Act.addVertex());
+            }
           case 'd':
             return sel.selection(state).match({
               none: () => dispatch(action),
-              vertices: vertexIds => dispatch(removeVertices(vertexIds)),
+              vertices: vertexIds => dispatch(Act.removeVertices(vertexIds)),
             });
-          // TODO Consolidate?
           case 'e':
             return sel.selection(state).match({
               none: () => dispatch(action),
@@ -53,8 +47,9 @@ export function dispatchKeyEvents(): Middleware<State, Action> {
                   return sel
                     .edgeFromEndpoints(state, startVertexId, endVertexId)
                     .match({
-                      none: () => dispatch(addEdge(startVertexId, endVertexId)),
-                      some: edge => dispatch(removeEdge(edge.id)),
+                      none: () =>
+                        dispatch(Act.addEdge(startVertexId, endVertexId)),
+                      some: edge => dispatch(Act.removeEdge(edge.id)),
                     });
                 } else {
                   return dispatch(action);
@@ -62,7 +57,7 @@ export function dispatchKeyEvents(): Middleware<State, Action> {
               },
             });
           case 'Escape':
-            return dispatch(cancelCurrentAction());
+            return dispatch(Act.cancelCurrentAction());
           default:
             return dispatch(action);
         }

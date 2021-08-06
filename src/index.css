@@ -3,6 +3,15 @@
   src: url('./assets/FiraMono-Regular.ttf');
 }
 
+:root {
+  --bg: #fafafa;
+  --bg1: #e9e0fd;
+  --fg: #06144a;
+  --fg1: #0c208e;
+  --accent: #e5c53d;
+  --accent1: #f0db7f;
+}
+
 html,
 body,
 #root {
@@ -15,6 +24,8 @@ body,
 html {
   font-size: 16px;
   font-family: 'Fira Mono', monospace;
+  background-color: var(--bg);
+  color: var(--fg);
 }
 
 #root {
@@ -33,7 +44,7 @@ main svg {
 
 footer {
   height: 3em;
-  border-top: 1px solid #444;
+  border-top: 1px solid var(--fg);
   padding: 0 2em;
 }
 
@@ -55,8 +66,48 @@ nav .actions {
   cursor: pointer;
   background-color: unset;
   border: none;
+  color: var(--fg);
 }
 
 .actions button:hover {
-  background-color: blueviolet;
+  background-color: var(--accent);
+}
+
+.vertex,
+.new-vertex,
+.edge-control-point {
+  cursor: move;
+}
+
+.edge-control-point {
+  fill: var(--fg);
+}
+
+.vertex-outer {
+  fill: var(--fg);
+}
+
+.edge-path {
+  stroke: var(--fg);
+}
+
+.vertex-inner {
+  fill: var(--bg);
+}
+
+.vertex.selected .vertex-inner {
+  fill: var(--accent);
+}
+
+.vertex.hovered .vertex-inner {
+  fill: var(--accent1);
+}
+
+.new-vertex .vertex-outer {
+  fill: var(--fg);
+}
+
+.box-selection {
+  fill: none;
+  stroke: var(--fg);
 }
