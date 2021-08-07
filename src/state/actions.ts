@@ -24,6 +24,10 @@ export enum ActionType {
   CancelCurrentAction = 'CancelCurrentAction',
   SelectAllVertices = 'SelectAllVertices',
   ChangeVertexName = 'ChangeVertexName',
+  MouseEnterVertex = 'MouseEnterVertex',
+  MouseLeaveVertex = 'MouseLeaveVertex',
+  MouseEnterEdgeControlPt = 'MouseEnterEdgeControlPt',
+  MouseLeaveEdgeControlPt = 'MouseLeaveEdgeControlPt',
 }
 
 export function mouseDownCanvas(): Action {
@@ -91,4 +95,20 @@ export function selectAllVertices(): Action {
 
 export function changeVertexName(vertexId: VertexId, name: string): Action {
   return { type: ActionType.ChangeVertexName, payload: { vertexId, name } };
+}
+
+export function mouseEnterVertex(vertexId: VertexId): Action {
+  return { type: ActionType.MouseEnterVertex, payload: vertexId };
+}
+
+export function mouseLeaveVertex(): Action {
+  return { type: ActionType.MouseLeaveVertex };
+}
+
+export function mouseEnterEdgeControlPt(edgeId: EdgeId): Action {
+  return { type: ActionType.MouseEnterEdgeControlPt, payload: edgeId };
+}
+
+export function mouseLeaveEdgeControlPt(): Action {
+  return { type: ActionType.MouseLeaveEdgeControlPt };
 }

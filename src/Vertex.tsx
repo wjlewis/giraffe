@@ -1,5 +1,6 @@
 import React from 'react';
 import { Vec, classNames } from './tools';
+import { StateContext } from './state';
 import * as St from './state';
 
 export const VERTEX_RADIUS = 15;
@@ -11,11 +12,11 @@ export interface VertexProps {
 }
 
 const Vertex: React.FC<VertexProps> = props => {
-  const { state, dispatch } = React.useContext(St.StateContext);
-  const [hovered, setHovered] = React.useState(false);
+  const { state, dispatch } = React.useContext(StateContext);
   const { id, name, pos } = props;
 
   const isSelected = St.isVertexSelected(state, id);
+  const isInBoxSelection = St.isVertexInBoxSelection(state, id);
   const isHovered = St.isVertexHovered(state, id);
 
   function handleMouseDown() {
@@ -27,14 +28,14 @@ const Vertex: React.FC<VertexProps> = props => {
   }
 
   function handleMouseEnter() {
-    setHovered(true);
+    return dispatch(St.mouseEnterVertex(id));
   }
 
   function handleMouseLeave() {
-    setHovered(false);
+    return dispatch(St.mouseLeaveVertex());
   }
 
-  const scale = hovered ? 1.5 : 1;
+  const scale = isHovered ? 1.5 : 1;
   const radius = scale * VERTEX_RADIUS;
 
   return (
@@ -56,7 +57,7 @@ const Vertex: React.FC<VertexProps> = props => {
 
       <g
         className={classNames('vertex', {
-          hovered: isHovered,
+          hovered: isInBoxSelection,
           selected: isSelected,
         })}
         onMouseEnter={handleMouseEnter}

@@ -43,6 +43,14 @@ export function reducer(state: State, action: Action): State {
       return reduceSelectAllVertices(state);
     case ActionType.ChangeVertexName:
       return reduceChangeVertexName(state, action);
+    case ActionType.MouseEnterVertex:
+      return reduceMouseEnterVertex(state, action);
+    case ActionType.MouseLeaveVertex:
+      return reduceMouseLeaveVertex(state);
+    case ActionType.MouseEnterEdgeControlPt:
+      return reduceMouseEnterEdgeControlPt(state, action);
+    case ActionType.MouseLeaveEdgeControlPt:
+      return reduceMouseLeaveEdgeControlPt(state);
     default:
       return state;
   }
@@ -219,10 +227,12 @@ function commitVerticesAndEdges(state: State): State {
     graph: {
       ...state.graph,
       vertices: {
+        ...state.graph.vertices,
         byId: state.graph.vertices.wip.unwrap(),
         wip: Option.None(),
       },
       edges: {
+        ...state.graph.edges,
         byId: state.graph.edges.wip.unwrap(),
         wip: Option.None(),
       },
@@ -240,6 +250,7 @@ function commitEdges(state: State): State {
     graph: {
       ...state.graph,
       edges: {
+        ...state.graph.edges,
         byId: state.graph.edges.wip.unwrap(),
         wip: Option.None(),
       },
@@ -483,6 +494,58 @@ function reduceChangeVertexName(state: State, action: Action): State {
       vertices: {
         ...state.graph.vertices,
         byId: updatedVertices,
+      },
+    },
+  };
+}
+
+function reduceMouseEnterVertex(state: State, action: Action): State {
+  return {
+    ...state,
+    graph: {
+      ...state.graph,
+      vertices: {
+        ...state.graph.vertices,
+        hovered: Option.Some(action.payload),
+      },
+    },
+  };
+}
+
+function reduceMouseLeaveVertex(state: State): State {
+  return {
+    ...state,
+    graph: {
+      ...state.graph,
+      vertices: {
+        ...state.graph.vertices,
+        hovered: Option.None(),
+      },
+    },
+  };
+}
+
+function reduceMouseEnterEdgeControlPt(state: State, action: Action): State {
+  return {
+    ...state,
+    graph: {
+      ...state.graph,
+      edges: {
+        ...state.graph.edges,
+        hovered: Option.Some(action.payload),
+      },
+    },
+  };
+}
+
+function reduceMouseLeaveEdgeControlPt(state: State): State {
+  return {
+    ...state,
+    graph: {
+      ...state.graph,
+      edges: {
+        ...state.graph.edges,
+        hovered: Option.None(),
       },
     },
   };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StateContext } from './state';
 import * as St from './state';
 import { Vec, classNames } from './tools';
 
@@ -10,8 +11,7 @@ export interface EdgeProps {
 }
 
 const Edge: React.FC<EdgeProps> = props => {
-  const { state, dispatch } = React.useContext(St.StateContext);
-  const [hovered, setHovered] = React.useState(false);
+  const { state, dispatch } = React.useContext(StateContext);
 
   const { startVertexId, endVertexId, controlPtPos: c, id } = props;
   const p = St.vertexPos(state, startVertexId);
@@ -22,6 +22,8 @@ const Edge: React.FC<EdgeProps> = props => {
   const pc = c.minus(p);
   const l = p.plus(pc.scale(2)).minus(m);
 
+  const isHovered = St.isEdgeControlPtHovered(state, id);
+
   function handleMouseDown(e: React.MouseEvent) {
     if (e.currentTarget !== e.target) {
       return;
@@ -31,11 +33,11 @@ const Edge: React.FC<EdgeProps> = props => {
   }
 
   function handleMouseEnter() {
-    setHovered(true);
+    return dispatch(St.mouseEnterEdgeControlPt(id));
   }
 
   function handleMouseLeave() {
-    setHovered(false);
+    return dispatch(St.mouseLeaveEdgeControlPt());
   }
 
   return (
@@ -49,10 +51,10 @@ const Edge: React.FC<EdgeProps> = props => {
       <g onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
         <circle cx={c.x} cy={c.y} r="12" fill="transparent" />
         <circle
-          className={classNames('edge-control-point', { hovered })}
+          className={classNames('edge-control-point', { hoverd: isHovered })}
           cx={c.x}
           cy={c.y}
-          r={hovered ? 14 : 4}
+          r={isHovered ? 14 : 4}
           onMouseDown={handleMouseDown}
         />
       </g>

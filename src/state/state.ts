@@ -24,10 +24,12 @@ export interface GraphState {
   vertices: {
     byId: ById<Vertex>;
     wip: Option<ById<Vertex>>;
+    hovered: Option<VertexId>;
   };
   edges: {
     byId: ById<Edge>;
     wip: Option<ById<Edge>>;
+    hovered: Option<EdgeId>;
   };
 }
 
@@ -59,10 +61,12 @@ export const initState: State = {
     vertices: {
       byId: {},
       wip: Option.None(),
+      hovered: Option.None(),
     },
     edges: {
       byId: {},
       wip: Option.None(),
+      hovered: Option.None(),
     },
   },
 };

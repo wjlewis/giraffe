@@ -78,7 +78,10 @@ export function isVertexSelected(state: State, vertexId: number): boolean {
   });
 }
 
-export function isVertexHovered(state: State, vertexId: number): boolean {
+export function isVertexInBoxSelection(
+  state: State,
+  vertexId: number
+): boolean {
   return state.ui.dragSubject.match({
     boxSelection: rootPos => {
       const rect = new Rect(rootPos, mousePos(state));
@@ -203,4 +206,18 @@ export function nextVertexName(state: State): string {
     // TODO Handle this more gracefully
     throw new Error('Ran out of names');
   }
+}
+
+export function isVertexHovered(state: State, vertexId: VertexId): boolean {
+  return state.graph.vertices.hovered.match({
+    none: () => false,
+    some: vertexId1 => vertexId1 === vertexId,
+  });
+}
+
+export function isEdgeControlPtHovered(state: State, edgeId: EdgeId): boolean {
+  return state.graph.edges.hovered.match({
+    none: () => false,
+    some: edgeId1 => edgeId1 === edgeId,
+  });
 }
