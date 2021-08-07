@@ -41,6 +41,8 @@ export function reducer(state: State, action: Action): State {
       return reduceCancelCurrentAction(state);
     case ActionType.SelectAllVertices:
       return reduceSelectAllVertices(state);
+    case ActionType.ChangeVertexName:
+      return reduceChangeVertexName(state, action);
     default:
       return state;
   }
@@ -48,7 +50,13 @@ export function reducer(state: State, action: Action): State {
 
 function reduceMouseDownCanvas(state: State): State {
   const dragSubject = DragSubject.BoxSelection(Sel.mousePos(state));
-  return { ...state, ui: { ...state.ui, dragSubject } };
+  const selection = Sel.isMultiSelect(state)
+    ? state.ui.selection
+    : Selection.None();
+  return {
+    ...state,
+    ui: { ...state.ui, dragSubject, selection },
+  };
 }
 
 function reduceMouseDownVertex(state: State, action: Action): State {
@@ -145,7 +153,7 @@ function reduceMouseDownEdgeControlPt(state: State, action: Action): State {
 function reduceMouseDownNewVertex(state: State): State {
   const newVertex: Vertex = {
     id: Sel.nextVertexId(state),
-    name: '',
+    name: Sel.nextVertexName(state),
     pos: Sel.mousePos(state),
   };
 
@@ -225,6 +233,10 @@ function commitVerticesAndEdges(state: State): State {
 function commitEdges(state: State): State {
   return {
     ...state,
+    ui: {
+      ...state.ui,
+      dragSubject: DragSubject.None(),
+    },
     graph: {
       ...state.graph,
       edges: {
@@ -454,6 +466,24 @@ function reduceSelectAllVertices(state: State): State {
     ui: {
       ...state.ui,
       selection: Selection.Vertices(allVertexIds),
+    },
+  };
+}
+
+function reduceChangeVertexName(state: State, action: Action): State {
+  // TODO Check for conflicts
+  const { vertexId, name } = action.payload;
+  const byId = state.graph.vertices.byId;
+  const vertex = byId[vertexId];
+  const updatedVertices = { ...byId, [vertexId]: { ...vertex, name } };
+  return {
+    ...state,
+    graph: {
+      ...state.graph,
+      vertices: {
+        ...state.graph.vertices,
+        byId: updatedVertices,
+      },
     },
   };
 }

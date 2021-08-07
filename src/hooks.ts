@@ -47,8 +47,13 @@ export function useMousePos<T extends HTMLElement>(
 
 export function useKeyboard(handlers: UseKeyboard) {
   const { onKeyDown = noOp, onKeyUp = noOp } = handlers;
+
   React.useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      if (e.currentTarget !== e.target) {
+        return;
+      }
+
       const { key, ctrlKey, metaKey } = e;
       onKeyDown({ key, ctrlKey, metaKey });
     }
@@ -57,12 +62,12 @@ export function useKeyboard(handlers: UseKeyboard) {
       onKeyUp();
     }
 
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', handleKeyUp);
+    document.body.addEventListener('keydown', handleKeyDown);
+    document.body.addEventListener('keyup', handleKeyUp);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('keyup', handleKeyUp);
+      document.body.removeEventListener('keydown', handleKeyDown);
+      document.body.removeEventListener('keyup', handleKeyUp);
     };
   }, [onKeyDown, onKeyUp]);
 }

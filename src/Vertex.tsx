@@ -13,13 +13,17 @@ export interface VertexProps {
 const Vertex: React.FC<VertexProps> = props => {
   const { state, dispatch } = React.useContext(St.StateContext);
   const [hovered, setHovered] = React.useState(false);
-  const { id, pos } = props;
+  const { id, name, pos } = props;
 
   const isSelected = St.isVertexSelected(state, id);
   const isHovered = St.isVertexHovered(state, id);
 
   function handleMouseDown() {
     return dispatch(St.mouseDownVertex(id));
+  }
+
+  function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
+    return dispatch(St.changeVertexName(id, e.target.value));
   }
 
   function handleMouseEnter() {
@@ -34,33 +38,43 @@ const Vertex: React.FC<VertexProps> = props => {
   const radius = scale * VERTEX_RADIUS;
 
   return (
-    <g
-      className={classNames('vertex', {
-        hovered: isHovered,
-        selected: isSelected,
-      })}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onMouseDown={handleMouseDown}
-    >
-      <circle
-        cx={pos.x}
-        cy={pos.y}
-        r={1.5 * VERTEX_RADIUS}
-        fill="transparent"
-      />
-      <g
-        transform={`translate(${pos.x - radius} ${
-          pos.y - radius
-        }) scale(${scale})`}
+    <g>
+      <foreignObject
+        x={pos.x - VERTEX_RADIUS}
+        y={pos.y + radius}
+        width="2em"
+        height="2em"
       >
-        <path
-          className="vertex-inner"
-          d="M 16,1.5503128 A 14.092136,13.606801 0 0 1 30.092041,15.157183 14.092136,13.606801 0 0 1 16,28.764152 14.092136,13.606801 0 0 1 1.9079589,15.157183 14.092136,13.606801 0 0 1 16,1.5503128 Z"
+        <input
+          className="vertex-name-input"
+          type="text"
+          maxLength={2}
+          value={name}
+          onChange={handleNameChange}
         />
-        <path
-          className="vertex-outer"
-          d="M 16,0.99999799 A 15.000002,14.999985 0 0 0 1,15.999998 a 15.000002,14.999985 0 0 0 15,15 15.000002,14.999985 0 0 0 15,-15 A 15.000002,14.999985 0 0 0 16,0.99999799 Z M 16,1.981373 A 13.645704,13.175745 0 0 1 29.645612,15.157185 13.645704,13.175745 0 0 1 16,28.333092 13.645704,13.175745 0 0 1 2.3543875,15.157185 13.645704,13.175745 0 0 1 16,1.981373 Z"
+      </foreignObject>
+
+      <g
+        className={classNames('vertex', {
+          hovered: isHovered,
+          selected: isSelected,
+        })}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onMouseDown={handleMouseDown}
+      >
+        <circle
+          cx={pos.x}
+          cy={pos.y}
+          r={1.5 * VERTEX_RADIUS}
+          fill="transparent"
+        />
+        <circle
+          className="vertex-dot"
+          cx={pos.x}
+          cy={pos.y}
+          r={radius}
+          strokeWidth="2"
         />
       </g>
     </g>

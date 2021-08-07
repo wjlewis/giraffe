@@ -42,6 +42,56 @@ main svg {
   height: 100%;
 }
 
+/* Shared */
+.vertex,
+.new-vertex,
+.edge-control-point {
+  cursor: move;
+}
+
+/* Vertices */
+.vertex-dot {
+  fill: var(--bg);
+  stroke: var(--fg);
+}
+
+.vertex.selected .vertex-dot {
+  fill: var(--accent);
+}
+
+.vertex.hovered .vertex-dot {
+  fill: var(--accent1);
+}
+
+.new-vertex {
+  fill: var(--bg);
+  stroke: var(--fg);
+}
+
+.vertex-name-input {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  width: 2em;
+  text-align: center;
+}
+
+/* Edges */
+.edge-path {
+  stroke: var(--fg);
+}
+
+.edge-control-point {
+  fill: var(--fg);
+}
+
+/* Box Selection */
+.box-selection {
+  fill: none;
+  stroke: var(--fg);
+}
+
+/* Footer */
 footer {
   height: 3em;
   border-top: 1px solid var(--fg);
@@ -73,41 +123,13 @@ nav .actions {
   background-color: var(--accent);
 }
 
-.vertex,
-.new-vertex,
-.edge-control-point {
-  cursor: move;
-}
-
-.edge-control-point {
-  fill: var(--fg);
-}
-
-.vertex-outer {
-  fill: var(--fg);
-}
-
-.edge-path {
-  stroke: var(--fg);
-}
-
-.vertex-inner {
-  fill: var(--bg);
-}
-
-.vertex.selected .vertex-inner {
-  fill: var(--accent);
-}
-
-.vertex.hovered .vertex-inner {
-  fill: var(--accent1);
-}
-
-.new-vertex .vertex-outer {
-  fill: var(--fg);
-}
-
-.box-selection {
-  fill: none;
-  stroke: var(--fg);
+/* Messages */
+.messages {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 1em;
+  pointer-events: none;
+  text-align: center;
 }

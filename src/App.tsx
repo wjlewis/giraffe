@@ -4,6 +4,7 @@ import * as St from './state';
 import Vertex from './Vertex';
 import Edge from './Edge';
 import BoxSelection from './BoxSelection';
+import Messages from './Messages';
 import Actions from './Actions';
 import NewVertex from './NewVertex';
 
@@ -37,6 +38,7 @@ const App: React.FC<{}> = () => {
 
   return (
     <St.StateContext.Provider value={{ state, dispatch }}>
+      <Messages />
       <main>
         <svg
           xmlns="http://www.w3.org/2000/svg"

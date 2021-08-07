@@ -180,3 +180,27 @@ export function vertexIdsInRect(state: State, rect: Rect): VertexId[] {
     .filter(vertex => rect.contains(vertex.pos, VERTEX_RADIUS))
     .map(({ id }) => id);
 }
+
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(
+  ''
+);
+
+export function nextVertexName(state: State): string {
+  const namesInUse = allVertices(state).map(({ name }) => name);
+  const unusedSingles = ALPHABET.filter(c => !namesInUse.includes(c));
+  if (unusedSingles.length > 0) {
+    return unusedSingles[0];
+  } else {
+    // In practice, this should never happen
+    for (let suffix = 0; suffix <= 9; suffix++) {
+      const alpha = ALPHABET.map(c => `${c}${suffix}`);
+      const unused = alpha.filter(n => !namesInUse.includes(n));
+      if (unused.length > 0) {
+        return unused[0];
+      }
+    }
+
+    // TODO Handle this more gracefully
+    throw new Error('Ran out of names');
+  }
+}

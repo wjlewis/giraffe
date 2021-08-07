@@ -1,5 +1,6 @@
 import { Vec } from '../tools';
 import { KeyDownInfo } from '../hooks';
+import { VertexId, EdgeId } from './state';
 
 export interface Action {
   type: string;
@@ -19,22 +20,21 @@ export enum ActionType {
   RemoveVertices = 'RemoveVertices',
   AddEdge = 'AddEdge',
   RemoveEdge = 'RemoveEdge',
-
-  // More specific keyboard actions
   ShiftKeyDown = 'ShiftKeyDown',
   CancelCurrentAction = 'CancelCurrentAction',
   SelectAllVertices = 'SelectAllVertices',
+  ChangeVertexName = 'ChangeVertexName',
 }
 
 export function mouseDownCanvas(): Action {
   return { type: ActionType.MouseDownCanvas };
 }
 
-export function mouseDownVertex(vertexId: number): Action {
+export function mouseDownVertex(vertexId: VertexId): Action {
   return { type: ActionType.MouseDownVertex, payload: vertexId };
 }
 
-export function mouseDownEdgeControlPt(edgeId: number): Action {
+export function mouseDownEdgeControlPt(edgeId: EdgeId): Action {
   return { type: ActionType.MouseDownEdgeControlPt, payload: edgeId };
 }
 
@@ -66,15 +66,18 @@ export function addVertex(): Action {
   return { type: ActionType.AddVertex };
 }
 
-export function removeVertices(vertexIds: number[]): Action {
+export function removeVertices(vertexIds: VertexId[]): Action {
   return { type: ActionType.RemoveVertices, payload: vertexIds };
 }
 
-export function addEdge(startVertexId: number, endVertexId: number): Action {
+export function addEdge(
+  startVertexId: VertexId,
+  endVertexId: VertexId
+): Action {
   return { type: ActionType.AddEdge, payload: { startVertexId, endVertexId } };
 }
 
-export function removeEdge(edgeId: number): Action {
+export function removeEdge(edgeId: EdgeId): Action {
   return { type: ActionType.RemoveEdge, payload: edgeId };
 }
 
@@ -84,4 +87,8 @@ export function cancelCurrentAction(): Action {
 
 export function selectAllVertices(): Action {
   return { type: ActionType.SelectAllVertices };
+}
+
+export function changeVertexName(vertexId: VertexId, name: string): Action {
+  return { type: ActionType.ChangeVertexName, payload: { vertexId, name } };
 }
