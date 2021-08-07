@@ -18,6 +18,8 @@ const Vertex: React.FC<VertexProps> = props => {
   const isSelected = St.isVertexSelected(state, id);
   const isInBoxSelection = St.isVertexInBoxSelection(state, id);
   const isHovered = St.isVertexHovered(state, id);
+  const hasDuplicatedName = St.hasDuplicatedName(state, id);
+  const isMissingName = name.length === 0;
 
   function handleMouseDown() {
     return dispatch(St.mouseDownVertex(id));
@@ -47,10 +49,15 @@ const Vertex: React.FC<VertexProps> = props => {
         height="2em"
       >
         <input
-          className="vertex-name-input"
+          className={classNames('vertex-name-input', {
+            duplicate: hasDuplicatedName,
+            missing: isMissingName,
+          })}
           type="text"
           maxLength={2}
           value={name}
+          // This placeholder only appears if the name is missing
+          placeholder="!"
           onChange={handleNameChange}
         />
       </foreignObject>

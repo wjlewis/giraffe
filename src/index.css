@@ -10,6 +10,8 @@
   --fg1: #0c208e;
   --accent: #e5c53d;
   --accent1: #f0db7f;
+  --error: #f03b14;
+  --font: 'Fira Mono', monospace;
 }
 
 html,
@@ -23,7 +25,7 @@ body,
 
 html {
   font-size: 16px;
-  font-family: 'Fira Mono', monospace;
+  font-family: var(--font);
   background-color: var(--bg);
   color: var(--fg);
 }
@@ -69,11 +71,24 @@ main svg {
 }
 
 .vertex-name-input {
+  font-family: var(--font);
   border: none;
   outline: none;
   background-color: transparent;
   width: 2em;
+  padding: 0;
+  padding-bottom: 4px;
   text-align: center;
+}
+
+.vertex-name-input.duplicate {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: var(--error);
+}
+
+.vertex-name-input.missing {
+  color: var(--error);
 }
 
 /* Edges */
@@ -112,7 +127,7 @@ nav .actions {
 .actions button {
   height: 100%;
   padding: 0 3em;
-  font-family: 'Fira Mono', monospace;
+  font-family: var(--font);
   cursor: pointer;
   background-color: unset;
   border: none;
@@ -121,15 +136,4 @@ nav .actions {
 
 .actions button:hover {
   background-color: var(--accent);
-}
-
-/* Messages */
-.messages {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 1em;
-  pointer-events: none;
-  text-align: center;
 }

@@ -194,7 +194,7 @@ export function nextVertexName(state: State): string {
   if (unusedSingles.length > 0) {
     return unusedSingles[0];
   } else {
-    // In practice, this should never happen
+    // In practice, this should never happen, so it's alright if it's a little slow
     for (let suffix = 0; suffix <= 9; suffix++) {
       const alpha = ALPHABET.map(c => `${c}${suffix}`);
       const unused = alpha.filter(n => !namesInUse.includes(n));
@@ -203,9 +203,17 @@ export function nextVertexName(state: State): string {
       }
     }
 
-    // TODO Handle this more gracefully
-    throw new Error('Ran out of names');
+    return '';
   }
+}
+
+export function hasDuplicatedName(state: State, vertexId: VertexId): boolean {
+  const vertexName = state.graph.vertices.byId[vertexId].name;
+  return Boolean(
+    allVertices(state).find(
+      ({ id, name }) => id !== vertexId && name === vertexName
+    )
+  );
 }
 
 export function isVertexHovered(state: State, vertexId: VertexId): boolean {
