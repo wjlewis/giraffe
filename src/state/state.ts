@@ -18,6 +18,7 @@ export interface UIState {
   selection: Selection;
   dragSubject: DragSubject;
   isMultiSelect: boolean;
+  hasMoved: boolean;
 }
 
 export interface GraphState {
@@ -48,6 +49,13 @@ export interface Edge {
   startVertexId: VertexId;
   endVertexId: VertexId;
   controlPtPos: Vec;
+  direction: EdgeDirection;
+}
+
+export enum EdgeDirection {
+  None = 'None',
+  Forward = 'Forward',
+  Reverse = 'Reverse',
 }
 
 export const initState: State = {
@@ -56,6 +64,7 @@ export const initState: State = {
     selection: Selection.None(),
     dragSubject: DragSubject.None(),
     isMultiSelect: false,
+    hasMoved: false,
   },
   graph: {
     vertices: {

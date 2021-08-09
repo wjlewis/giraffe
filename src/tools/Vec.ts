@@ -51,4 +51,12 @@ export class Vec {
 
     return this.scale(1 / len);
   }
+
+  rotate(angle: number): Vec {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const x = this.x * cos + this.y * sin;
+    const y = -this.x * sin + this.y * cos;
+    return new Vec(x, y);
+  }
 }

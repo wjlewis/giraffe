@@ -229,3 +229,14 @@ export function isEdgeControlPtHovered(state: State, edgeId: EdgeId): boolean {
     some: edgeId1 => edgeId1 === edgeId,
   });
 }
+
+export function hasMoved(state: State): boolean {
+  return state.ui.hasMoved;
+}
+
+export function edgeById(state: State, edgeId: EdgeId): Edge {
+  return state.graph.edges.wip.match({
+    none: () => state.graph.edges.byId[edgeId],
+    some: byId => byId[edgeId],
+  });
+}

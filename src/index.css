@@ -77,14 +77,11 @@ main svg {
   background-color: transparent;
   width: 2em;
   padding: 0;
-  padding-bottom: 4px;
   text-align: center;
 }
 
 .vertex-name-input.duplicate {
-  text-decoration: underline;
-  text-decoration-style: wavy;
-  text-decoration-color: var(--error);
+  color: var(--error);
 }
 
 .vertex-name-input.missing {
@@ -96,7 +93,12 @@ main svg {
   stroke: var(--fg);
 }
 
-.edge-control-point {
+.edge-control {
+  cursor: move;
+}
+
+.edge-control-point,
+.edge-arrow {
   fill: var(--fg);
 }
 

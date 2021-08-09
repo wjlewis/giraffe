@@ -28,6 +28,7 @@ export enum ActionType {
   MouseLeaveVertex = 'MouseLeaveVertex',
   MouseEnterEdgeControlPt = 'MouseEnterEdgeControlPt',
   MouseLeaveEdgeControlPt = 'MouseLeaveEdgeControlPt',
+  ToggleEdgeDirection = 'ToggleEdgeDirection',
 }
 
 export function mouseDownCanvas(): Action {
@@ -111,4 +112,8 @@ export function mouseEnterEdgeControlPt(edgeId: EdgeId): Action {
 
 export function mouseLeaveEdgeControlPt(): Action {
   return { type: ActionType.MouseLeaveEdgeControlPt };
+}
+
+export function toggleEdgeDirection(edgeId: EdgeId): Action {
+  return { type: ActionType.ToggleEdgeDirection, payload: edgeId };
 }

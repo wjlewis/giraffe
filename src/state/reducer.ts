@@ -1,6 +1,14 @@
 import { Vec, Rect, Option, xOrIn, arrayToObj } from '../tools';
 import { Action, ActionType } from './actions';
-import { State, ById, Edge, Vertex, EdgeId, VertexId } from './state';
+import {
+  State,
+  ById,
+  Edge,
+  Vertex,
+  EdgeId,
+  VertexId,
+  EdgeDirection,
+} from './state';
 import {
   Selection,
   DragSubject,
@@ -10,6 +18,13 @@ import {
   EdgeOffset,
 } from './misc';
 import * as Sel from './selectors';
+
+// TODO
+// - Directed Edges
+// - Undo/Redo
+// - Export
+// - Dark Theme
+// - Logo? Styling, etc.
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -51,6 +66,8 @@ export function reducer(state: State, action: Action): State {
       return reduceMouseEnterEdgeControlPt(state, action);
     case ActionType.MouseLeaveEdgeControlPt:
       return reduceMouseLeaveEdgeControlPt(state);
+    case ActionType.ToggleEdgeDirection:
+      return reduceToggleEdgeDirection(state, action);
     default:
       return state;
   }
@@ -85,6 +102,7 @@ function reduceMouseDownVertex(state: State, action: Action): State {
       ...state.ui,
       selection: Selection.Vertices(allSelectedVertexIds),
       dragSubject: DragSubject.Vertices(vertexOffsets, edgeOffsets),
+      hasMoved: false,
     },
     graph: {
       ...state.graph,
@@ -147,6 +165,7 @@ function reduceMouseDownEdgeControlPt(state: State, action: Action): State {
     ui: {
       ...state.ui,
       dragSubject: DragSubject.EdgeControlPt(action.payload),
+      hasMoved: false,
     },
     graph: {
       ...state.graph,
@@ -317,6 +336,10 @@ function updateEdgeAndVertexWips(
 
   return {
     ...state,
+    ui: {
+      ...state.ui,
+      hasMoved: true,
+    },
     graph: {
       ...state.graph,
       vertices: {
@@ -334,6 +357,10 @@ function updateEdgeAndVertexWips(
 function updateEdgeWip(state: State, edgeId: EdgeId): State {
   return {
     ...state,
+    ui: {
+      ...state.ui,
+      hasMoved: true,
+    },
     graph: {
       ...state.graph,
       edges: {
@@ -402,16 +429,20 @@ function reduceAddEdge(state: State, action: Action): State {
     .minus(startVertexPos)
     .scale(1 / 2)
     .plus(startVertexPos);
-  const edge = {
+
+  const edge: Edge = {
     id,
     startVertexId,
     endVertexId,
     controlPtPos,
+    direction: EdgeDirection.None,
   };
+
   const byId = {
     ...state.graph.edges.byId,
     [id]: edge,
   };
+
   return {
     ...state,
     ui: { ...state.ui, selection: Selection.None() },
@@ -482,7 +513,6 @@ function reduceSelectAllVertices(state: State): State {
 }
 
 function reduceChangeVertexName(state: State, action: Action): State {
-  // TODO Check for conflicts
   const { vertexId, name } = action.payload;
   const byId = state.graph.vertices.byId;
   const vertex = byId[vertexId];
@@ -549,4 +579,37 @@ function reduceMouseLeaveEdgeControlPt(state: State): State {
       },
     },
   };
+}
+
+function reduceToggleEdgeDirection(state: State, action: Action): State {
+  const edge = Sel.edgeById(state, action.payload);
+  const updatedEdge = toggleEdgeDirection(edge);
+  return {
+    ...state,
+    graph: {
+      ...state.graph,
+      edges: {
+        ...state.graph.edges,
+        byId: {
+          ...state.graph.edges.byId,
+          [edge.id]: updatedEdge,
+        },
+        wip: state.graph.edges.wip.map(byId => ({
+          ...byId,
+          [edge.id]: updatedEdge,
+        })),
+      },
+    },
+  };
+}
+
+function toggleEdgeDirection(edge: Edge): Edge {
+  switch (edge.direction) {
+    case EdgeDirection.None:
+      return { ...edge, direction: EdgeDirection.Forward };
+    case EdgeDirection.Forward:
+      return { ...edge, direction: EdgeDirection.Reverse };
+    case EdgeDirection.Reverse:
+      return { ...edge, direction: EdgeDirection.None };
+  }
 }
