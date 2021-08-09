@@ -29,6 +29,9 @@ export enum ActionType {
   MouseEnterEdgeControlPt = 'MouseEnterEdgeControlPt',
   MouseLeaveEdgeControlPt = 'MouseLeaveEdgeControlPt',
   ToggleEdgeDirection = 'ToggleEdgeDirection',
+  CommitCurrentGraphState = 'CommitCurrentGraphState',
+  Undo = 'Undo',
+  Redo = 'Redo',
 }
 
 export function mouseDownCanvas(): Action {
@@ -116,4 +119,16 @@ export function mouseLeaveEdgeControlPt(): Action {
 
 export function toggleEdgeDirection(edgeId: EdgeId): Action {
   return { type: ActionType.ToggleEdgeDirection, payload: edgeId };
+}
+
+export function commitCurrentGraphState(): Action {
+  return { type: ActionType.CommitCurrentGraphState };
+}
+
+export function undo(): Action {
+  return { type: ActionType.Undo };
+}
+
+export function redo(): Action {
+  return { type: ActionType.Redo };
 }

@@ -12,6 +12,7 @@ const App: React.FC<{}> = () => {
     St.reducer,
     St.initState,
     St.dispatchKeyEvents(),
+    St.commitGraph(),
     St.logActions(St.ActionType.MouseMove)
   );
   const hostRef = useMousePos(pos => dispatch(St.mouseMove(pos)));

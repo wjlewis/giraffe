@@ -1,7 +1,7 @@
 import React from 'react';
 import { Action } from './actions';
 import { Vec, Option } from '../tools';
-import { DragSubject, Selection } from './misc';
+import { DragSubject, Selection, UndoRedo } from './misc';
 
 export const StateContext = React.createContext({
   state: null as any as State,
@@ -11,6 +11,7 @@ export const StateContext = React.createContext({
 export interface State {
   ui: UIState;
   graph: GraphState;
+  undoRedo: UndoRedo<GraphState>;
 }
 
 export interface UIState {
@@ -58,6 +59,19 @@ export enum EdgeDirection {
   Reverse = 'Reverse',
 }
 
+const emptyGraph: GraphState = {
+  vertices: {
+    byId: {},
+    wip: Option.None(),
+    hovered: Option.None(),
+  },
+  edges: {
+    byId: {},
+    wip: Option.None(),
+    hovered: Option.None(),
+  },
+};
+
 export const initState: State = {
   ui: {
     mousePos: new Vec(0, 0),
@@ -66,18 +80,8 @@ export const initState: State = {
     isMultiSelect: false,
     hasMoved: false,
   },
-  graph: {
-    vertices: {
-      byId: {},
-      wip: Option.None(),
-      hovered: Option.None(),
-    },
-    edges: {
-      byId: {},
-      wip: Option.None(),
-      hovered: Option.None(),
-    },
-  },
+  graph: emptyGraph,
+  undoRedo: new UndoRedo(emptyGraph),
 };
 
 export type VertexId = number;

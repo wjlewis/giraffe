@@ -2,6 +2,7 @@ import { Vec, Rect, Option, xOrIn, arrayToObj } from '../tools';
 import { Action, ActionType } from './actions';
 import {
   State,
+  GraphState,
   ById,
   Edge,
   Vertex,
@@ -18,13 +19,6 @@ import {
   EdgeOffset,
 } from './misc';
 import * as Sel from './selectors';
-
-// TODO
-// - Directed Edges
-// - Undo/Redo
-// - Export
-// - Dark Theme
-// - Logo? Styling, etc.
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -68,6 +62,12 @@ export function reducer(state: State, action: Action): State {
       return reduceMouseLeaveEdgeControlPt(state);
     case ActionType.ToggleEdgeDirection:
       return reduceToggleEdgeDirection(state, action);
+    case ActionType.CommitCurrentGraphState:
+      return reduceCommitCurrentGraphState(state);
+    case ActionType.Undo:
+      return reduceUndo(state);
+    case ActionType.Redo:
+      return reduceRedo(state);
     default:
       return state;
   }
@@ -612,4 +612,47 @@ function toggleEdgeDirection(edge: Edge): Edge {
     case EdgeDirection.Reverse:
       return { ...edge, direction: EdgeDirection.None };
   }
+}
+
+function reduceCommitCurrentGraphState(state: State): State {
+  return {
+    ...state,
+    undoRedo: state.undoRedo.commit(state.graph),
+  };
+}
+
+function reduceUndo(state: State): State {
+  return state.undoRedo.undo().match({
+    none: () => state,
+    some: ([graph, undoRedo]) => ({
+      ...state,
+      ui: {
+        ...state.ui,
+        selection: undoRedoSelection(state, graph),
+      },
+      graph,
+      undoRedo,
+    }),
+  });
+}
+
+function reduceRedo(state: State): State {
+  return state.undoRedo.redo().match({
+    none: () => state,
+    some: ([graph, undoRedo]) => ({ ...state, graph, undoRedo }),
+  });
+}
+
+function undoRedoSelection(state: State, graph: GraphState): Selection {
+  return Sel.selection(state).match({
+    none: () => Sel.selection(state),
+    vertices: vertexIds => {
+      const allVertexIds = Object.values(graph.vertices.byId).map(
+        ({ id }) => id
+      );
+      return Selection.Vertices(
+        vertexIds.filter(id => allVertexIds.includes(id))
+      );
+    },
+  });
 }
