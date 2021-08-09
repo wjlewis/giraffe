@@ -85,7 +85,7 @@ const Arrow: React.FC<ArrowProps> = ({ c, pq, direction }) => {
 
   const wingLength = 30;
   const isForward = direction === EdgeDirection.Forward;
-  const arrowSpine = pq.normalize().scale(isForward ? wingLength : -wingLength);
+  const arrowSpine = pq.normalize().scale(isForward ? -wingLength : wingLength);
   const wing1 = arrowSpine.rotate(Math.PI / 10);
   const wing2 = arrowSpine.rotate(-Math.PI / 10);
   const w1 = c.plus(wing1);

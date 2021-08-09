@@ -1,5 +1,6 @@
 export * from './Vec';
 export * from './Option';
+export * from './Result';
 export * from './Rect';
 
 export function noOp(..._args: any[]) {}
@@ -16,7 +17,7 @@ export function xOrIn<A>(xs: A[], x: A): A[] {
   if (xs.includes(x)) {
     return xs.filter(x1 => x1 !== x);
   } else {
-    return [x, ...xs];
+    return [...xs, x];
   }
 }
 
@@ -33,4 +34,19 @@ export function classNames(...args: any[]): string {
       }
     })
     .join(' ');
+}
+
+export function dups<A>(xs: A[]): A[] {
+  const seen: A[] = [];
+  const dups: A[] = [];
+
+  for (let x of xs) {
+    if (seen.includes(x) && !dups.includes(x)) {
+      dups.push(x);
+    }
+
+    seen.push(x);
+  }
+
+  return dups;
 }

@@ -1,6 +1,6 @@
 import { State, Vertex, Edge } from './index';
 import { DragSubject, Selection } from './misc';
-import { Vec, Option, Rect } from '../tools';
+import { Vec, Option, Result, Rect, dups } from '../tools';
 import {
   Action,
   addVertex,
@@ -8,7 +8,7 @@ import {
   addEdge,
   removeEdge,
 } from './actions';
-import { VertexId, EdgeId } from './state';
+import { VertexId, EdgeId, EdgeDirection } from './state';
 import { VERTEX_RADIUS } from '../Vertex';
 
 export function vertexPos(state: State, vertexId: VertexId): Vec {
@@ -234,9 +234,72 @@ export function hasMoved(state: State): boolean {
   return state.ui.hasMoved;
 }
 
+export function vertexById(state: State, vertexId: VertexId): Vertex {
+  return state.graph.vertices.wip.match({
+    none: () => state.graph.vertices.byId[vertexId],
+    some: byId => byId[vertexId],
+  });
+}
+
 export function edgeById(state: State, edgeId: EdgeId): Edge {
   return state.graph.edges.wip.match({
     none: () => state.graph.edges.byId[edgeId],
     some: byId => byId[edgeId],
   });
+}
+
+export function exportMathematica(state: State): Result<string, string[]> {
+  const duplicates = duplicateVertexNames(state);
+  const missing = missingVertexNameCount(state);
+
+  const errors = [];
+  if (duplicates.length > 0) {
+    if (duplicates.length === 1) {
+      errors.push(`The name "${duplicates[0]}" is used more than once`);
+    } else {
+      const duplicateNames = duplicates.map(name => `"${name}"`).join(', ');
+      errors.push(`The names ${duplicateNames} are used more than once`);
+    }
+  }
+  if (missing > 0) {
+    if (missing === 1) {
+      errors.push(`1 vertex is missing a name`);
+    } else {
+      errors.push(`${missing} vertices are missing names`);
+    }
+  }
+  if (errors.length > 0) {
+    return Result.Err(errors);
+  }
+
+  const edges = allEdges(state);
+  const formatted = edges.map(e => {
+    const start = vertexById(state, e.startVertexId);
+    const end = vertexById(state, e.endVertexId);
+    switch (e.direction) {
+      case EdgeDirection.None:
+        return `${start.name} <-> ${end.name}`;
+      case EdgeDirection.Forward:
+        return `${start.name} -> ${end.name}`;
+      case EdgeDirection.Reverse:
+        return `${end.name} -> ${start.name}`;
+    }
+    // Linter appeasement
+    return '';
+  });
+
+  return Result.Ok(
+    `Graph[{ ${formatted.join(', ')} }, VertexLabels -> "Name"]`
+  );
+}
+
+function duplicateVertexNames(state: State): string[] {
+  const vertexNames = allVertices(state).map(({ name }) => name);
+  // We'll account for missing names separately
+  return dups(vertexNames).filter(name => name.length > 0);
+}
+
+function missingVertexNameCount(state: State): number {
+  const vertexNames = allVertices(state).map(({ name }) => name);
+  return vertexNames.filter(name => name.length === 0).length;
 }

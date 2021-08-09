@@ -111,12 +111,15 @@ main svg {
 /* Footer */
 footer {
   height: 3em;
+  width: 100%;
+  box-sizing: border-box;
   border-top: 1px solid var(--fg);
   padding: 0 2em;
 }
 
 nav {
   height: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -124,6 +127,16 @@ nav {
 
 nav .actions {
   height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.actions-lhs,
+.actions-rhs {
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .actions button {
