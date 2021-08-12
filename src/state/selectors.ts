@@ -1,5 +1,5 @@
 import { State, Vertex, Edge } from './index';
-import { DragSubject, Selection } from './misc';
+import { DragSubject, Selection, OverlayState } from './misc';
 import { Vec, Option, Result, Rect, dups } from '../tools';
 import {
   Action,
@@ -302,4 +302,8 @@ function duplicateVertexNames(state: State): string[] {
 function missingVertexNameCount(state: State): number {
   const vertexNames = allVertices(state).map(({ name }) => name);
   return vertexNames.filter(name => name.length === 0).length;
+}
+
+export function overlay(state: State): OverlayState {
+  return state.overlay;
 }

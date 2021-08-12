@@ -32,6 +32,9 @@ export enum ActionType {
   CommitCurrentGraphState = 'CommitCurrentGraphState',
   Undo = 'Undo',
   Redo = 'Redo',
+  OpenGraphOverlay = 'OpenGraphOverlay',
+  OpenErrorsOverlay = 'OpenErrorsOverlay',
+  DismissOverlay = 'DismissOverlay',
 }
 
 export function mouseDownCanvas(): Action {
@@ -131,4 +134,16 @@ export function undo(): Action {
 
 export function redo(): Action {
   return { type: ActionType.Redo };
+}
+
+export function openGraphOverlay(graph: string): Action {
+  return { type: ActionType.OpenGraphOverlay, payload: graph };
+}
+
+export function openErrorsOverlay(errors: string[]): Action {
+  return { type: ActionType.OpenErrorsOverlay, payload: errors };
+}
+
+export function dismissOverlay(): Action {
+  return { type: ActionType.DismissOverlay };
 }

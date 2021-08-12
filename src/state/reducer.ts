@@ -17,6 +17,7 @@ import {
   VertexOffset,
   EdgeOffsets,
   EdgeOffset,
+  OverlayState,
 } from './misc';
 import * as Sel from './selectors';
 
@@ -68,6 +69,12 @@ export function reducer(state: State, action: Action): State {
       return reduceUndo(state);
     case ActionType.Redo:
       return reduceRedo(state);
+    case ActionType.OpenGraphOverlay:
+      return reduceOpenGraphOverlay(state, action);
+    case ActionType.OpenErrorsOverlay:
+      return reduceOpenErrorsOverlay(state, action);
+    case ActionType.DismissOverlay:
+      return reduceDismissOverlay(state);
     default:
       return state;
   }
@@ -655,4 +662,16 @@ function undoRedoSelection(state: State, graph: GraphState): Selection {
       );
     },
   });
+}
+
+function reduceOpenGraphOverlay(state: State, action: Action): State {
+  return { ...state, overlay: OverlayState.Graph(action.payload) };
+}
+
+function reduceOpenErrorsOverlay(state: State, action: Action): State {
+  return { ...state, overlay: OverlayState.Errors(action.payload) };
+}
+
+function reduceDismissOverlay(state: State): State {
+  return { ...state, overlay: OverlayState.None() };
 }

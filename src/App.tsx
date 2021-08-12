@@ -6,14 +6,14 @@ import Edge from './Edge';
 import BoxSelection from './BoxSelection';
 import Actions from './Actions';
 import NewVertex from './NewVertex';
+import Overlay from './Overlay';
 
 const App: React.FC<{}> = () => {
   const [state, dispatch] = useReducer(
     St.reducer,
     St.initState,
     St.dispatchKeyEvents(),
-    St.commitGraph(),
-    St.logActions(St.ActionType.MouseMove)
+    St.commitGraph()
   );
   const hostRef = useMousePos(pos => dispatch(St.mouseMove(pos)));
   useKeyboard({
@@ -64,6 +64,8 @@ const App: React.FC<{}> = () => {
           <Actions />
         </nav>
       </footer>
+
+      <Overlay />
     </St.StateContext.Provider>
   );
 };

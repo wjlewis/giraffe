@@ -1,15 +1,16 @@
 import React from 'react';
+import { StateContext } from './state';
 import * as St from './state';
 
 const Actions: React.FC<{}> = () => {
-  const { state, dispatch } = React.useContext(St.StateContext);
+  const { state, dispatch } = React.useContext(StateContext);
 
   const actions = St.availableActions(state);
 
   function handleExport() {
     St.exportMathematica(state).match({
-      err: errors => console.log(errors),
-      ok: graph => console.log(graph),
+      err: errors => dispatch(St.openErrorsOverlay(errors)),
+      ok: graph => dispatch(St.openGraphOverlay(graph)),
     });
   }
 

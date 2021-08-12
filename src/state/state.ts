@@ -1,7 +1,7 @@
 import React from 'react';
 import { Action } from './actions';
 import { Vec, Option } from '../tools';
-import { DragSubject, Selection, UndoRedo } from './misc';
+import { DragSubject, Selection, UndoRedo, OverlayState } from './misc';
 
 export const StateContext = React.createContext({
   state: null as any as State,
@@ -11,6 +11,7 @@ export const StateContext = React.createContext({
 export interface State {
   ui: UIState;
   graph: GraphState;
+  overlay: OverlayState;
   undoRedo: UndoRedo<GraphState>;
 }
 
@@ -81,6 +82,7 @@ export const initState: State = {
     hasMoved: false,
   },
   graph: emptyGraph,
+  overlay: OverlayState.None(),
   undoRedo: new UndoRedo(emptyGraph),
 };
 

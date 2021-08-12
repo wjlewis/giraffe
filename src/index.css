@@ -152,3 +152,60 @@ nav .actions {
 .actions button:hover {
   background-color: var(--accent);
 }
+
+/* Overlay */
+#overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 80, 0.1);
+}
+
+#overlay article {
+  padding: 2em;
+  max-width: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 2px;
+  border: 1px solid var(--fg);
+  background-color: var(--bg);
+  box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.1);
+}
+
+#overlay article button {
+  border: none;
+  padding: 0.5em 1em;
+  color: var(--fg);
+  background-color: var(--accent);
+  font-family: var(--font);
+  cursor: pointer;
+}
+
+#overlay article button:hover {
+  background-color: var(--accent1);
+}
+
+.graph-text {
+  font-size: 1em;
+  font-family: var(--font);
+  outline: 1px solid var(--fg);
+  border: none;
+  width: 100%;
+  text-align: center;
+  margin: 3em 0;
+}
+
+.errors {
+  margin-bottom: 2em;
+}
+
+.error-text {
+  color: var(--error);
+}
