@@ -1,6 +1,7 @@
 import React from 'react';
-import { useReducer, useMousePos, useKeyboard } from './hooks';
+import { useReducer, useMousePos, useKeyboard, useBounds } from './hooks';
 import * as St from './state';
+import { Vec } from './tools';
 import Vertex from './Vertex';
 import Edge from './Edge';
 import BoxSelection from './BoxSelection';
@@ -15,11 +16,17 @@ const App: React.FC<{}> = () => {
     St.dispatchKeyEvents(),
     St.commitGraph()
   );
-  const hostRef = useMousePos(pos => dispatch(St.mouseMove(pos)));
+  const hostRef = React.useRef(null);
+  const { width, height } = useBounds(hostRef);
+  useMousePos(hostRef, pos =>
+    dispatch(St.mouseMove(new Vec(pos.x - width / 2, pos.y - height / 2)))
+  );
   useKeyboard({
     onKeyDown: info => dispatch(St.keyDown(info)),
     onKeyUp: () => dispatch(St.keyUp()),
   });
+
+  const transform = `translate(${width / 2} ${height / 2})`;
 
   const edges = St.allEdges(state);
   const vertices = St.allVertices(state);
@@ -45,17 +52,19 @@ const App: React.FC<{}> = () => {
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
         >
-          {edges.map(e => (
-            <Edge key={e.id} {...e} />
-          ))}
+          <g transform={transform}>
+            {edges.map(e => (
+              <Edge key={e.id} {...e} />
+            ))}
 
-          {vertices.map(v => (
-            <Vertex key={v.id} {...v} />
-          ))}
+            {vertices.map(v => (
+              <Vertex key={v.id} {...v} />
+            ))}
 
-          <BoxSelection />
+            <BoxSelection />
 
-          <NewVertex />
+            <NewVertex />
+          </g>
         </svg>
       </main>
 

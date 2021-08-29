@@ -18,18 +18,18 @@ export function useReducer<St, A>(
   return [state, dispatch];
 }
 
-export function useMousePos<T extends HTMLElement>(
+export function useMousePos<E extends HTMLElement>(
+  ref: React.RefObject<E>,
   onMove: (pos: Vec) => unknown
-): React.RefObject<T> {
+) {
   const [bounds, setBounds] = React.useState({ left: 0, top: 0 });
-  const hostRef: React.RefObject<T> = React.useRef(null);
 
   React.useEffect(() => {
-    if (hostRef.current) {
-      const { left, top } = hostRef.current.getBoundingClientRect();
+    if (ref.current) {
+      const { left, top } = ref.current.getBoundingClientRect();
       setBounds({ left, top });
     }
-  }, [hostRef, setBounds]);
+  }, [ref, setBounds]);
 
   React.useEffect(() => {
     const { left, top } = bounds;
@@ -41,8 +41,6 @@ export function useMousePos<T extends HTMLElement>(
     document.addEventListener('mousemove', handleMouseMove);
     return () => document.removeEventListener('mousemove', handleMouseMove);
   }, [bounds, onMove]);
-
-  return hostRef;
 }
 
 export function useKeyboard(handlers: UseKeyboard) {
@@ -81,4 +79,34 @@ export interface KeyDownInfo {
   key: string;
   ctrlKey: boolean;
   metaKey: boolean;
+}
+
+export function useBounds<E extends HTMLElement>(
+  ref: React.RefObject<E>
+): Bounds {
+  const [bounds, setBounds] = React.useState({ width: 0, height: 0 });
+
+  const recomputeBounds = React.useCallback(() => {
+    if (ref.current) {
+      const { width, height } = ref.current.getBoundingClientRect();
+      return setBounds({ width, height });
+    }
+  }, [ref]);
+
+  React.useLayoutEffect(() => {
+    recomputeBounds();
+  }, [recomputeBounds]);
+
+  React.useEffect(() => {
+    window.addEventListener('resize', recomputeBounds);
+
+    return () => window.removeEventListener('resize', recomputeBounds);
+  }, [recomputeBounds]);
+
+  return bounds;
+}
+
+export interface Bounds {
+  width: number;
+  height: number;
 }
