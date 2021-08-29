@@ -11,6 +11,7 @@
   --accent: #e5c53d;
   --accent1: #f0db7f;
   --error: #f03b14;
+  --blue: #2430b7;
   --font: 'Fira Mono', monospace;
 }
 
@@ -115,6 +116,7 @@ footer {
   box-sizing: border-box;
   border-top: 1px solid var(--fg);
   padding: 0 2em;
+  user-select: none;
 }
 
 nav {
@@ -142,6 +144,7 @@ nav .actions {
 .actions button {
   height: 100%;
   padding: 0 3em;
+  font-size: 1em;
   font-family: var(--font);
   cursor: pointer;
   background-color: unset;
@@ -151,6 +154,12 @@ nav .actions {
 
 .actions button:hover {
   background-color: var(--accent);
+}
+
+.actions a {
+  color: var(--blue);
+  padding: 0 1em;
+  font-size: 1em;
 }
 
 /* Overlay */

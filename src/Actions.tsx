@@ -24,6 +24,20 @@ const Actions: React.FC<{}> = () => {
         ))}
       </div>
       <div className="actions-rhs">
+        <a
+          href="https://github.com/wjlewis/giraffe"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Source
+        </a>
+        <a
+          href="https://github.com/wjlewis/giraffe/blob/master/README.md"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Instructions
+        </a>
         <button onClick={handleExport}>Export</button>
       </div>
     </div>
