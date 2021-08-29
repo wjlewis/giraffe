@@ -192,14 +192,30 @@ nav .actions {
   background-color: var(--accent1);
 }
 
+#overlay article button:disabled {
+  background-color: var(--accent1);
+  cursor: unset;
+}
+
+.graph-text-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
 .graph-text {
   font-size: 1em;
   font-family: var(--font);
   outline: 1px solid var(--fg);
+  padding: 0.3em 0;
   border: none;
   width: 100%;
   text-align: center;
   margin: 3em 0;
+}
+
+.graph-text-container button {
+  margin-left: 10px;
 }
 
 .errors {

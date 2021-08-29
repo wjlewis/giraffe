@@ -6,6 +6,7 @@ import { noOp } from './tools';
 const Overlay: React.FC<{}> = () => {
   const { state, dispatch } = React.useContext(StateContext);
   const graphTextRef = React.useRef(null);
+  const [copying, setCopying] = React.useState(false);
 
   const overlay = St.overlay(state);
   if (overlay.isNone()) {
@@ -19,6 +20,20 @@ const Overlay: React.FC<{}> = () => {
     dispatch(St.dismissOverlay());
   }
 
+  function copyToClipboard() {
+    if (graphTextRef.current) {
+      const input = graphTextRef.current as any as HTMLInputElement;
+      input.focus();
+      input.select();
+      document.execCommand('copy');
+
+      setCopying(true);
+      setTimeout(() => {
+        setCopying(false);
+      }, 1000);
+    }
+  }
+
   return (
     <div id="overlay" onClick={dismiss}>
       {overlay.match({
@@ -28,12 +43,19 @@ const Overlay: React.FC<{}> = () => {
         graph: graph => (
           <article className="graph-report">
             <p>Copy and paste the output below into a Mathematica document:</p>
-            <input
-              ref={graphTextRef}
-              className="graph-text"
-              value={graph}
-              onChange={noOp}
-            />
+
+            <div className="graph-text-container">
+              <input
+                ref={graphTextRef}
+                className="graph-text"
+                value={graph}
+                onChange={noOp}
+              />
+              <button onClick={copyToClipboard} disabled={copying}>
+                {copying ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+
             <button onClick={dismiss}>Dismiss</button>
           </article>
         ),
