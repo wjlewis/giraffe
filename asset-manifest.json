@@ -1,0 +1,21 @@
+{
+  "files": {
+    "main.css": "/giraffe/static/css/main.ea5131dc.chunk.css",
+    "main.js": "/giraffe/static/js/main.fee97c39.chunk.js",
+    "main.js.map": "/giraffe/static/js/main.fee97c39.chunk.js.map",
+    "runtime-main.js": "/giraffe/static/js/runtime-main.f9176487.js",
+    "runtime-main.js.map": "/giraffe/static/js/runtime-main.f9176487.js.map",
+    "static/js/2.499fabc8.chunk.js": "/giraffe/static/js/2.499fabc8.chunk.js",
+    "static/js/2.499fabc8.chunk.js.map": "/giraffe/static/js/2.499fabc8.chunk.js.map",
+    "index.html": "/giraffe/index.html",
+    "static/css/main.ea5131dc.chunk.css.map": "/giraffe/static/css/main.ea5131dc.chunk.css.map",
+    "static/js/2.499fabc8.chunk.js.LICENSE.txt": "/giraffe/static/js/2.499fabc8.chunk.js.LICENSE.txt",
+    "static/media/index.css": "/giraffe/static/media/FiraMono-Regular.68fc4c9a.ttf"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.f9176487.js",
+    "static/js/2.499fabc8.chunk.js",
+    "static/css/main.ea5131dc.chunk.css",
+    "static/js/main.fee97c39.chunk.js"
+  ]
+}
